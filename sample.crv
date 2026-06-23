@@ -1,0 +1,91 @@
+---
+title: Carve Sample
+tags: [carve, markup, demo]
+---
+
+%% This is a line comment.
+
+# Heading 1
+## Heading 2
+### Heading 3
+###### Heading 6
+
+A paragraph with /italic/, *bold*, /*bold italic*/, _underline_, ~strike~,
+=highlight=, ^super^, ,,sub,, and `inline code`. An escape: \*literal\*.
+Smart typography: -- --- ... -> (c) (tm). Hard break at end:\
+
+Links: [text](https://example.com), autolink <https://carve.dev>,
+image ![alt](img.jpg), cross-ref </#heading-1>, reference [Page Name][],
+and a footnote [^1] plus an inline note ^[right here].
+
+A [span]{.fancy} and an :youtube[dQw4] extension. Social: @user and #tag.
+
+{#styled .class key=value}
+A block with attributes attached above.
+
+---
+
+- unordered item
+* star item
+1. ordered item
+a. alpha item
+- [ ] task to do
+- [x] task done
+- [?] maybe
+
+:: term
+:  definition body
+
+> blockquote line one
+> blockquote line two
+^ Attribution
+
+> quoted block
++
+- list now inside the quote
+
+```lua "Example" [tab-a]
+local x = 1
+print(x)
+```
+
+```=html
+<div>raw passthrough</div>
+```
+
+```math
+\int_0^1 x\,dx
+```
+
+Inline math $`e^{i\pi}+1=0` and display $$`\sum_{n=1}^\infty 1/n^2`.
+
+::: note
+An admonition body.
+:::
+
+:::: outer
+::: warning "Careful" [w1]
+nested warning
+:::
+::::
+
+|= Name |=> Age |=~ City |
+| Alice |< 30   | NYC    |
+^ Table caption
+
+| Name  | Age |
+|-------|----:|
+| Bob   |  42 |
+
+%%%
+A fenced block comment
+spanning multiple lines.
+%%%
+
+CriticMarkup: {+inserted+} {-deleted-} {~old~>new~} {#a comment#}.
+
+Intraword braces: H{,2,}O and mc{^2^}.
+
+[Page Name]: https://example.com/page
+[^1]: The footnote body text.
+*[HTML]: HyperText Markup Language
