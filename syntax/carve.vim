@@ -1,6 +1,6 @@
 " Vim syntax file
 " Language:    Carve markup language
-" Maintainer:  markup-carve/carve.vim
+" Maintainer:  markup-carve/vim-carve
 " Filenames:   *.crv, *.carve
 "
 " Regex-based highlighting that works in classic Vim and in Neovim without

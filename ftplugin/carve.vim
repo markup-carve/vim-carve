@@ -1,5 +1,5 @@
 " Carve filetype plugin
-" Part of markup-carve/carve.vim
+" Part of markup-carve/vim-carve
 if exists('b:did_ftplugin')
   finish
 endif

@@ -1,5 +1,5 @@
 " Carve indent file
-" Part of markup-carve/carve.vim
+" Part of markup-carve/vim-carve
 " Minimal indent: keep list / blockquote prefixes aligned on <CR> and ==.
 if exists('b:did_indent')
   finish

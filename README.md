@@ -35,14 +35,14 @@ upgrade for Neovim users who install the parser.
 ### vim-plug (Vim or Neovim)
 
 ```vim
-Plug 'markup-carve/carve.vim'
+Plug 'markup-carve/vim-carve'
 ```
 
 ### lazy.nvim (Neovim)
 
 ```lua
 {
-  'markup-carve/carve.vim',
+  'markup-carve/vim-carve',
   ft = { 'carve' },
   config = function()
     require('carve').setup()
@@ -54,7 +54,7 @@ Plug 'markup-carve/carve.vim'
 
 ```lua
 use {
-  'markup-carve/carve.vim',
+  'markup-carve/vim-carve',
   config = function()
     require('carve').setup()
   end,
@@ -64,9 +64,9 @@ use {
 ### Manual
 
 ```sh
-git clone https://github.com/markup-carve/carve.vim ~/.vim/pack/plugins/start/carve.vim
+git clone https://github.com/markup-carve/vim-carve ~/.vim/pack/plugins/start/carve.vim
 # Neovim:
-git clone https://github.com/markup-carve/carve.vim \
+git clone https://github.com/markup-carve/vim-carve \
   ~/.local/share/nvim/site/pack/plugins/start/carve.vim
 ```
 
