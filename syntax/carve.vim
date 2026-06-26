@@ -178,6 +178,18 @@ syntax match carveInlineAttr /{[#.][^}]*}/
 " Extension inline: :type[content]{attrs}
 syntax match carveExtInline /:[[:alnum:]_-]\+\[[^]]*\]/
 
+" Citations: [@key, loc; -@key2] and [+@key] -- no (url)/[ref]/{attr} tail.
+" Highlights the entire bracket as a citation, with the @key sub-match.
+" Key charset: [A-Za-z0-9_][A-Za-z0-9_:.#$%&+?<>~/-]*
+syntax match carveCitationKey /@[[:alnum:]_][[:alnum:]_:.#$%&+?<>~\/-]*/ contained
+syntax region carveCitation matchgroup=carveCitationDelim
+      \ start=/\[+\?[^]]*@[[:alnum:]_]/ end=/\]\%([([\{]\)\@!/
+      \ oneline keepend contains=carveCitationKey
+
+" CodeCallout markers: <N> where N is one or more digits.
+" Appears trailing in fenced-code lines and leading in callout list items.
+syntax match carveCallout /<\d\+>/
+
 " Mentions and tags.
 syntax match carveMention /\%(^\|\s\)\zs@[[:alnum:]_][[:alnum:]_-]*/
 syntax match carveTag     /\%(^\|\s\)\zs#[[:alnum:]_][[:alnum:]_-]*/
@@ -192,7 +204,7 @@ syntax region carveCriticSub matchgroup=carveCriticDelim start=/{\~/ end=/\~}/ o
 syntax region carveCriticCom matchgroup=carveCriticDelim start=/{#/ end=/#}/ oneline keepend
 
 " Inline cluster (note: no link inside link to avoid recursion).
-syntax cluster carveInlineNoLink contains=carveItalic,carveBold,carveUnderline,carveStrike,carveHighlight,carveSuper,carveSub,carveCode,carveEscape,carveHardBreak,carveMention,carveTag,carveTypography,carveBraceInline,carveAutolink,carveCrossRef,carveFootRef,carveMathInline
+syntax cluster carveInlineNoLink contains=carveItalic,carveBold,carveUnderline,carveStrike,carveHighlight,carveSuper,carveSub,carveCode,carveEscape,carveHardBreak,carveMention,carveTag,carveTypography,carveBraceInline,carveAutolink,carveCrossRef,carveFootRef,carveMathInline,carveCitation,carveCallout
 syntax cluster carveInline contains=@carveInlineNoLink,carveLink,carveImage,carveSpan,carveFootInline,carveRawInline,carveExtInline,carveInlineAttr,carveCriticIns,carveCriticDel,carveCriticSub,carveCriticCom
 
 " ===========================================================================
@@ -292,6 +304,11 @@ highlight default link carveFootDef        Identifier
 highlight default link carveMention        Identifier
 highlight default link carveTag            Tag
 highlight default link carveTypography      Special
+
+highlight default link carveCitation       Special
+highlight default link carveCitationDelim  Delimiter
+highlight default link carveCitationKey    Identifier
+highlight default link carveCallout        Number
 
 highlight default link carveCriticIns      DiffAdd
 highlight default link carveCriticDel      DiffDelete
