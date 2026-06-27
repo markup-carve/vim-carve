@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    name: Validate Vim syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Vim
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y vim
+
+      - name: Source syntax/carve.vim (must load without error)
+        run: |
+          vim -u NONE -N -es \
+            -c 'syntax on' \
+            -c 'source syntax/carve.vim' \
+            -c 'q'
+
+      - name: Source all Vim runtime files
+        run: |
+          for f in ftdetect/carve.vim ftplugin/carve.vim indent/carve.vim; do
+            echo "Sourcing $f"
+            vim -u NONE -N -es -c "source $f" -c 'q'
+          done
+
+      - name: Check tree-sitter query files are present
+        run: |
+          for q in highlights indents injections locals folds context textobjects; do
+            test -s "queries/carve/$q.scm" || { echo "Missing or empty queries/carve/$q.scm"; exit 1; }
+          done
+          echo "All tree-sitter query files present."
