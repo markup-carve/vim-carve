@@ -14,7 +14,7 @@ A paragraph with /italic/, *bold*, /*bold italic*/, _underline_, ~strike~,
 =highlight=, ^super^, ,,sub,, and `inline code`. An escape: \*literal\*.
 Smart typography: -- --- ... -> (c) (tm). Hard break at end:\
 
-Links: [text](https://example.com), autolink <https://carve.dev>,
+Links: [text](https://example.com), autolink <https://example.com>,
 image ![alt](img.jpg), cross-ref </#heading-1>, reference [Page Name][],
 and a footnote [^1] plus an inline note ^[right here].
 
