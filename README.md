@@ -1,7 +1,7 @@
 # carve.vim
 
-Vim and Neovim support for the [Carve](https://carve.dev) markup language
-(`*.crv`, `*.carve`).
+Vim and Neovim support for the [Carve](https://github.com/markup-carve/carve) markup language
+(`*.crv`).
 
 One repository, two highlighting layers:
 
@@ -17,7 +17,7 @@ upgrade for Neovim users who install the parser.
 
 ## What you get
 
-- Filetype detection for `*.crv` and `*.carve`.
+- Filetype detection for `*.crv`.
 - Syntax highlighting for headings, inline emphasis (`/italic/`, `*bold*`,
   `_underline_`, `~strike~`, `=highlight=`, `^sup^`, `,,sub,,`, `` `code` ``),
   links, autolinks, images, cross-refs, references, footnotes, lists and task

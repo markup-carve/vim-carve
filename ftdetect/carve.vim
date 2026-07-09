@@ -1,3 +1,3 @@
 " Carve filetype detection
 " Part of markup-carve/vim-carve
-autocmd BufRead,BufNewFile *.crv,*.carve set filetype=carve
+autocmd BufRead,BufNewFile *.crv set filetype=carve
