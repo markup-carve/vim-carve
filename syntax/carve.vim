@@ -138,17 +138,20 @@ syntax match carveAbbrLabel /\*\[[^]]*\]/ contained
 syntax match carveEscape /\\[!-/:-@[-`{-~]/
 syntax match carveHardBreak /\\$/
 
-" Emphasis. Carve: /italic/ *bold* _underline_ ~strike~ =highlight= ^sup^ ,,sub,,
+" Emphasis. Carve: /italic/ *bold* _underline_ ~strike~ =highlight=
+" (bare ^..^ / ,..., are NOT sup/sub -- only braced {^..^} / {,..,} are).
 syntax region carveItalic    matchgroup=carveDelim start=#\v/#  end=#\v/#  oneline keepend contains=carveEscape concealends
 syntax region carveBold      matchgroup=carveDelim start=/\*/   end=/\*/   oneline keepend contains=carveEscape,carveItalic concealends
 syntax region carveUnderline matchgroup=carveDelim start=/_/    end=/_/    oneline keepend contains=carveEscape concealends
 syntax region carveStrike    matchgroup=carveDelim start=/\~/   end=/\~/   oneline keepend contains=carveEscape concealends
 syntax region carveHighlight matchgroup=carveDelim start=/=/    end=/=/    oneline keepend contains=carveEscape concealends
-syntax region carveSuper     matchgroup=carveDelim start=/\^/   end=/\^/   oneline keepend contains=carveEscape concealends
-syntax region carveSub       matchgroup=carveDelim start=/,,/   end=/,,/   oneline keepend contains=carveEscape concealends
 
-" Brace forms for intraword delimiters: {,2,} {^2^} {*x*} etc.
-syntax match carveBraceInline /{[/*_~=^,][^{}]*[/*_~=^,]}/
+" Superscript / subscript: braced forms only, {^text^} and {,text,}.
+syntax match carveSuper /{\^[^{}]*\^}/ contains=carveEscape
+syntax match carveSub   /{,[^{}]*,}/   contains=carveEscape
+
+" Brace forms for intraword emphasis delimiters: {*x*} {/x/} etc.
+syntax match carveBraceInline /{[/*_~=][^{}]*[/*_~=]}/
 
 " Inline code (verbatim) and raw inline `code`{=html}.
 syntax region carveCode matchgroup=carveDelim start=/`/ end=/`/ oneline keepend contains=@NoSpell

@@ -11,7 +11,7 @@ tags: [carve, markup, demo]
 ###### Heading 6
 
 A paragraph with /italic/, *bold*, /*bold italic*/, _underline_, ~strike~,
-=highlight=, ^super^, ,,sub,, and `inline code`. An escape: \*literal\*.
+=highlight=, {^super^}, {,sub,} and `inline code`. An escape: \*literal\*.
 Smart typography: -- --- ... -> (c) (tm). Hard break at end:\
 
 Links: [text](https://example.com), autolink <https://example.com>,
