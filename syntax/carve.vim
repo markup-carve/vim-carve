@@ -203,7 +203,9 @@ syntax match carveTypography /--\|---\|\.\.\.\|->\|(c)\|(C)\|(r)\|(R)\|(tm)\|(TM
 " CriticMarkup: {+ins+} {-del-} {~old~>new~} {#comment#}
 syntax region carveCriticIns matchgroup=carveCriticDelim start=/{+/ end=/+}/ oneline keepend
 syntax region carveCriticDel matchgroup=carveCriticDelim start=/{-/ end=/-}/ oneline keepend
-syntax region carveCriticSub matchgroup=carveCriticDelim start=/{\~/ end=/\~}/ oneline keepend
+" Editorial substitution requires the `~>` arrow; a `{~x~}` with no arrow is a
+" forced strikethrough (PART 9 S22), so the start pattern must look ahead for it.
+syntax region carveCriticSub matchgroup=carveCriticDelim start=/{\~\ze[^}]*\~>/ end=/\~}/ oneline keepend
 syntax region carveCriticCom matchgroup=carveCriticDelim start=/{#/ end=/#}/ oneline keepend
 
 " Inline cluster (note: no link inside link to avoid recursion).
