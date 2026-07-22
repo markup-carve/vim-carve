@@ -209,6 +209,9 @@
   (math_marker)
   (math_marker_begin)
   (math_marker_end)
+  (literal_marker)
+  (literal_marker_begin)
+  (literal_marker_end)
   (raw_inline_attribute)
   (raw_inline_marker_begin)
   (raw_inline_marker_end)
@@ -217,6 +220,9 @@
 
 ((math) @markup.math
   (#set! priority 90))
+
+; Inline literal renders as prose, not code -- keep it unstyled (no @markup.raw).
+(inline_literal) @none
 
 (verbatim) @markup.raw
 
