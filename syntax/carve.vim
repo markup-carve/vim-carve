@@ -103,6 +103,13 @@ syntax region carveMathInline matchgroup=carveMathDelim
 syntax region carveMathDisplay matchgroup=carveMathDelim
       \ start=/\$\$`/ end=/`/ keepend contains=@NoSpell
 
+" Inline literal: !`...` -- a `!` prefix on a verbatim span, mirroring the
+" $`...` math prefix. Renders as literal prose (no <code>). The `!` start is
+" leftmost, so it wins over carveCode (which starts at the backtick); carveImage
+" (!\[) is unaffected since the literal requires a backtick after the `!`.
+syntax region carveLiteralInline matchgroup=carveLiteralDelim
+      \ start=/!`/ end=/`/ oneline keepend contains=@NoSpell
+
 " ---------------------------------------------------------------------------
 " Divs / admonitions: ::: type "title" [label] ... :::
 " ---------------------------------------------------------------------------
@@ -209,7 +216,7 @@ syntax region carveCriticSub matchgroup=carveCriticDelim start=/{\~\ze[^}]*\~>/ 
 syntax region carveCriticCom matchgroup=carveCriticDelim start=/{#/ end=/#}/ oneline keepend
 
 " Inline cluster (note: no link inside link to avoid recursion).
-syntax cluster carveInlineNoLink contains=carveItalic,carveBold,carveUnderline,carveStrike,carveHighlight,carveSuper,carveSub,carveCode,carveEscape,carveHardBreak,carveMention,carveTag,carveTypography,carveBraceInline,carveAutolink,carveCrossRef,carveFootRef,carveMathInline,carveCitation,carveCallout
+syntax cluster carveInlineNoLink contains=carveItalic,carveBold,carveUnderline,carveStrike,carveHighlight,carveSuper,carveSub,carveCode,carveLiteralInline,carveEscape,carveHardBreak,carveMention,carveTag,carveTypography,carveBraceInline,carveAutolink,carveCrossRef,carveFootRef,carveMathInline,carveCitation,carveCallout
 syntax cluster carveInline contains=@carveInlineNoLink,carveLink,carveImage,carveSpan,carveFootInline,carveRawInline,carveExtInline,carveInlineAttr,carveCriticIns,carveCriticDel,carveCriticSub,carveCriticCom
 
 " ===========================================================================
@@ -254,6 +261,8 @@ highlight default link carveMathBlock      Number
 highlight default link carveMathInline     Number
 highlight default link carveMathDisplay    Number
 highlight default link carveMathDelim      Delimiter
+highlight default link carveLiteralInline  String
+highlight default link carveLiteralDelim   Delimiter
 
 highlight default link carveDivFence       Delimiter
 highlight default link carveAdmonition     Keyword
