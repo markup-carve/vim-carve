@@ -401,6 +401,7 @@
   (math)
   (raw_inline)
   (verbatim)
+  (inline_literal)
   (reference_label)
   (class)
   (class_name)
