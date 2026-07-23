@@ -204,6 +204,10 @@ syntax match carveCallout /<\d\+>/
 syntax match carveMention /\%(^\|\s\)\zs@[[:alnum:]_][[:alnum:]_-]*/
 syntax match carveTag     /\%(^\|\s\)\zs#[[:alnum:]_][[:alnum:]_-]*/
 
+" Symbol shortcodes :name: (word boundary; first name char is a letter, digit,
+" + or -, so :+1:/:-1: match but :_x: stays literal).
+syntax match carveSymbol  /\%(^\|\s\|[([]\)\zs:[[:alnum:]+-][[:alnum:]_+-]*:/
+
 " Smart typography.
 syntax match carveTypography /--\|---\|\.\.\.\|->\|(c)\|(C)\|(r)\|(R)\|(tm)\|(TM)/
 
@@ -216,7 +220,7 @@ syntax region carveCriticSub matchgroup=carveCriticDelim start=/{\~\ze[^}]*\~>/ 
 syntax region carveCriticCom matchgroup=carveCriticDelim start=/{#/ end=/#}/ oneline keepend
 
 " Inline cluster (note: no link inside link to avoid recursion).
-syntax cluster carveInlineNoLink contains=carveItalic,carveBold,carveUnderline,carveStrike,carveHighlight,carveSuper,carveSub,carveCode,carveLiteralInline,carveEscape,carveHardBreak,carveMention,carveTag,carveTypography,carveBraceInline,carveAutolink,carveCrossRef,carveFootRef,carveMathInline,carveCitation,carveCallout
+syntax cluster carveInlineNoLink contains=carveItalic,carveBold,carveUnderline,carveStrike,carveHighlight,carveSuper,carveSub,carveCode,carveLiteralInline,carveEscape,carveHardBreak,carveMention,carveTag,carveSymbol,carveTypography,carveBraceInline,carveAutolink,carveCrossRef,carveFootRef,carveMathInline,carveCitation,carveCallout
 syntax cluster carveInline contains=@carveInlineNoLink,carveLink,carveImage,carveSpan,carveFootInline,carveRawInline,carveExtInline,carveInlineAttr,carveCriticIns,carveCriticDel,carveCriticSub,carveCriticCom
 
 " ===========================================================================
@@ -317,6 +321,7 @@ highlight default link carveFootDef        Identifier
 
 highlight default link carveMention        Identifier
 highlight default link carveTag            Tag
+highlight default link carveSymbol         Constant
 highlight default link carveTypography      Special
 
 highlight default link carveCitation       Special
