@@ -28,8 +28,12 @@ syntax region carveFrontmatter matchgroup=carveFrontmatterFence
 " Comments: %% line, text %% trailing, and %%% ... %%% fenced block.
 " ---------------------------------------------------------------------------
 syntax match carveComment /%%.*$/ contains=carveTodo,@Spell
+" A %%% fence line is a delimiter plus an insignificant tail (spec PART 9 S28):
+" only the leading run of % is structural, so `%%% TODO` opens and `%%% end`
+" closes, and `%%% html` is a comment rather than a raw block. \z( \) captures
+" the opener width so \z1 closes on the SAME width, letting %%%% nest %%%.
 syntax region carveCommentBlock matchgroup=carveCommentFence
-      \ start=/^%%%\s*$/ end=/^%%%\s*$/ contains=carveTodo,@Spell
+      \ start=/^\s*\z(%\{3,}\).*$/ end=/^\s*\z1%\@!.*$/ contains=carveTodo,@Spell
 syntax keyword carveTodo contained TODO FIXME XXX NOTE
 
 " ---------------------------------------------------------------------------
