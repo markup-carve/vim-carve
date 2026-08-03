@@ -31,6 +31,13 @@ jobs:
             vim -u NONE -N -es -c "source $f" -c 'q'
           done
 
+      # Loading is not behaviour. Two rules stayed wrong through several
+      # releases because nothing here asserted what the syntax highlights:
+      # `>no space` coloured as a blockquote and `- ` as a list, where carve-rs
+      # renders both as paragraphs.
+      - name: Assert what the syntax highlights
+        run: ./tests/run-highlight-tests.sh
+
       - name: Check tree-sitter query files are present
         run: |
           for q in highlights indents injections locals folds context textobjects; do
