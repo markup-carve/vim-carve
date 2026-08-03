@@ -1,0 +1,28 @@
+# Each case is: EXPECTED_GROUP <TAB> source line. The group is what the syntax
+# reports at column 1, or `-` for none. A line ending in a space is written
+# with a trailing `<SP>` marker so the intent survives editors that strip it.
+#
+# MARKER REQUIRES CONTENT (markup-carve/carve#513): a marker followed by
+# whitespace only is prose. Verified against carve-rs.
+-	#<SP>
+-	-<SP>
+-	1.<SP>
+-	.<SP>
+-	^<SP>
+-	::<SP>
+carveHeading1	# H
+carveListBullet	- item
+carveListNumber	1. item
+carveListNumber	. bare
+carveDefTerm	:: term
+carveCaption	^ cap
+# Only spaces and tabs separate a marker from its content, so a heading whose
+# content starts with a no-break space is still a heading.
+carveHeading1	# <NBSP>Title
+# A blockquote marker takes a space, or stands alone (markup-carve/carve#525).
+# `>>` is not a nested marker: that is `> > x`, a space per marker.
+-	>no space
+-	>>x
+-	>> x
+carveBlockquote	>
+carveBlockquote	> real quote
