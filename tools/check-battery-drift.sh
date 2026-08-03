@@ -27,7 +27,9 @@ fi
 
 if ! diff -q "$local_file" "$remote_file" >/dev/null; then
   echo "The vendored block battery has drifted from carve-grammars:"
-  diff "$local_file" "$remote_file" | head -40
+  # `diff` exits 1 when there IS a difference, which under `pipefail` would
+  # abort the script here and swallow the remediation line below.
+  diff "$local_file" "$remote_file" | head -40 || true
   echo
   echo "Re-copy tests/lib/block-battery.json, then fix whatever the new shapes catch."
   exit 1
