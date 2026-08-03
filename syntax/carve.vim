@@ -63,7 +63,11 @@ syntax match carveAttrKey   /[[:alnum:]_-]\+=/  contained
 " ---------------------------------------------------------------------------
 " Blockquotes and captions / attributions.
 " ---------------------------------------------------------------------------
-syntax match carveBlockquote /^\s*>.*$/ contains=@carveInline,@Spell
+" A `>` marker takes a SPACE, or stands alone on its line. Not any `\s`:
+" verified against carve-rs, `>no space`, `>>x`, `>> x` and `>\tx` are all
+" paragraphs - nesting is written `> > x`, a space per marker, and a tab does
+" not separate (markup-carve/carve#525).
+syntax match carveBlockquote /^[ \t]*>\( \|$\).*$/ contains=@carveInline,@Spell
 syntax match carveCaption    /^\s*\^\s.*$/ contains=@carveInline,@Spell
 
 " ---------------------------------------------------------------------------
