@@ -44,3 +44,10 @@ jobs:
             test -s "queries/carve/$q.scm" || { echo "Missing or empty queries/carve/$q.scm"; exit 1; }
           done
           echo "All tree-sitter query files present."
+
+      # Present is not the same as correct. These files are copies of
+      # tree-sitter-carve's (see README) and nothing compared them, so they
+      # drifted: the heading level predicates were off by one and two rule
+      # groups were missing entirely.
+      - name: Bundled queries still match tree-sitter-carve
+        run: ./tools/check-query-drift.sh

@@ -14,15 +14,15 @@
 
 ((heading
   (marker) @_heading.marker) @markup.heading.4
-  (#eq? @_heading.marker "##### "))
+  (#eq? @_heading.marker "#### "))
 
 ((heading
   (marker) @_heading.marker) @markup.heading.5
-  (#eq? @_heading.marker "###### "))
+  (#eq? @_heading.marker "##### "))
 
 ((heading
   (marker) @_heading.marker) @markup.heading.6
-  (#eq? @_heading.marker "####### "))
+  (#eq? @_heading.marker "###### "))
 
 (thematic_break) @string.special
 
@@ -107,6 +107,9 @@
   (list_marker_upper_roman_paren)
   (list_marker_upper_roman_parens)
 ] @markup.list
+
+; The `+` list/block-quote continuation marker (PART 9 §17).
+(list_continuation_marker) @markup.list
 
 (list_marker_task
   (unchecked)) @markup.list.unchecked
@@ -221,13 +224,13 @@
 ((math) @markup.math
   (#set! priority 90))
 
-; Inline literal renders as prose, not code -- keep it unstyled (no @markup.raw).
-(inline_literal) @none
-
 (verbatim) @markup.raw
 
 ((raw_inline) @markup.raw
   (#set! priority 90))
+
+; Inline literal renders as prose (no code/math face), so capture it plainly.
+(inline_literal) @none
 
 [
   (comment_line)
@@ -368,6 +371,20 @@
 
 (abbreviation_definition
   (abbreviation_expansion) @string)
+
+; Citations (§22 / Tier-2 extension)
+(citation_group) @string.special
+
+(citation_definition
+  (citation_label) @markup.link.label)
+
+(citation_definition
+  (citation_entry) @string)
+
+; Callout list (§10 / Tier-2 extension)
+(callout_list) @markup.list
+
+(callout_list_item) @markup.list
 
 (footnote
   (reference_label) @markup.link.label)
