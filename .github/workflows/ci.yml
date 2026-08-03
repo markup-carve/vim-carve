@@ -38,6 +38,12 @@ jobs:
       - name: Assert what the syntax highlights
         run: ./tests/run-highlight-tests.sh
 
+      # The same table every other Carve grammar is checked against. Six copies
+      # of these block rules exist; the last drift was found by comparing them
+      # by hand, which is not a control.
+      - name: The shared block battery agrees
+        run: ./tests/run-block-battery.sh
+
       - name: Check tree-sitter query files are present
         run: |
           for q in highlights indents injections locals folds context textobjects; do
@@ -51,3 +57,9 @@ jobs:
       # groups were missing entirely.
       - name: Bundled queries still match tree-sitter-carve
         run: ./tools/check-query-drift.sh
+
+      # Separate from the tests above on purpose: this reaches the network, so a
+      # failure means the vendored battery is stale (or GitHub is down), not
+      # that the syntax is wrong.
+      - name: The vendored block battery still matches carve-grammars
+        run: ./tools/check-battery-drift.sh
