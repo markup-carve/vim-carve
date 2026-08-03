@@ -39,12 +39,12 @@ syntax keyword carveTodo contained TODO FIXME XXX NOTE
 " ---------------------------------------------------------------------------
 " Headings: ATX # .. ######
 " ---------------------------------------------------------------------------
-syntax match carveHeading1 /^#\s.*$/      contains=@carveInline,@Spell
-syntax match carveHeading2 /^##\s.*$/     contains=@carveInline,@Spell
-syntax match carveHeading3 /^###\s.*$/    contains=@carveInline,@Spell
-syntax match carveHeading4 /^####\s.*$/   contains=@carveInline,@Spell
-syntax match carveHeading5 /^#####\s.*$/  contains=@carveInline,@Spell
-syntax match carveHeading6 /^######\s.*$/ contains=@carveInline,@Spell
+syntax match carveHeading1 /^#\s\+\S\@=.*$/      contains=@carveInline,@Spell
+syntax match carveHeading2 /^##\s\+\S\@=.*$/     contains=@carveInline,@Spell
+syntax match carveHeading3 /^###\s\+\S\@=.*$/    contains=@carveInline,@Spell
+syntax match carveHeading4 /^####\s\+\S\@=.*$/   contains=@carveInline,@Spell
+syntax match carveHeading5 /^#####\s\+\S\@=.*$/  contains=@carveInline,@Spell
+syntax match carveHeading6 /^######\s\+\S\@=.*$/ contains=@carveInline,@Spell
 
 " ---------------------------------------------------------------------------
 " Thematic break: --- *** ___
@@ -68,23 +68,31 @@ syntax match carveAttrKey   /[[:alnum:]_-]\+=/  contained
 " paragraphs - nesting is written `> > x`, a space per marker, and a tab does
 " not separate (markup-carve/carve#525).
 syntax match carveBlockquote /^[ \t]*>\( \|$\).*$/ contains=@carveInline,@Spell
-syntax match carveCaption    /^\s*\^\s.*$/ contains=@carveInline,@Spell
+syntax match carveCaption    /^\s*\^\s\+\S\@=.*$/ contains=@carveInline,@Spell
 
 " ---------------------------------------------------------------------------
 " Lists: -, *, +, ordered (1. 1) a. A. i. I. ...), task markers.
 "
-" The BARE DOT is a marker on its own (carve#472): `.` alone continues an
-" ordered sequence, and is the only marker allowed to drop its value.
+" MARKER REQUIRES CONTENT (markup-carve/carve#513): a marker followed by
+" whitespace only is prose - carve-rs renders `-<space>` as `<p>-</p>`. Vim's
+" `\s` is space-and-tab only and never the newline, so a BARE marker already
+" failed to match; the trailing-whitespace forms are what needed the guard.
+" `\S\@=` is a lookahead, so the highlighted extent is unchanged. Vim's `\S`
+" also counts NBSP as non-space, which is what Carve wants.
+" The BARE DOT is a marker on its own (carve#472): `.` continues an ordered
+" sequence, and is the only marker allowed to drop its VALUE - the number. It
+" still needs content: carve-rs renders `. ` as `<p>.</p>`, the same as every
+" other content-less marker, so the guard above applies to it too.
 " ---------------------------------------------------------------------------
-syntax match carveListBullet /^\s*[-*+]\s\+/me=e-1
-syntax match carveListNumber /^\s*\%(\%(\d\+\|[a-zA-Z]\|[ivxIVX]\+\)[.)]\|\.\)\s\+/me=e-1
+syntax match carveListBullet /^\s*[-*+]\s\+\S\@=/me=e-1
+syntax match carveListNumber /^\s*\%(\%(\d\+\|[a-zA-Z]\|[ivxIVX]\+\)[.)]\|\.\)\s\+\S\@=/me=e-1
 syntax match carveListTask   /^\s*[-*+]\s\+\[[ xX\-_>?]\]/
       \ contains=carveListBullet,carveTaskMark
 syntax match carveTaskMark   /\[[ xX\-_>?]\]/ contained
 
 " Definition lists: '::' term then ':' definition.
-syntax match carveDefTerm /^::\s.*$/ contains=@carveInline,@Spell
-syntax match carveDefBody /^:\s.*$/  contains=@carveInline,@Spell
+syntax match carveDefTerm /^::\s\+\S\@=.*$/ contains=@carveInline,@Spell
+syntax match carveDefBody /^:\s\+\S\@=.*$/  contains=@carveInline,@Spell
 
 " Lone + / > continuation markers at column 0 (attach next block).
 syntax match carveContinuation /^[+]\s*$/
