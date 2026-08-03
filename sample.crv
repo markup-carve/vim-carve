@@ -28,6 +28,7 @@ A block with attributes attached above.
 - unordered item
 * star item
 1. ordered item
+. bare-dot item, continuing the same list
 a. alpha item
 - [ ] task to do
 - [x] task done
