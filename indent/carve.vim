@@ -25,8 +25,10 @@ function! GetCarveIndent() abort
   let prev = getline(lnum)
   let prev_indent = indent(lnum)
 
-  " Continue a blockquote.
-  if prev =~# '^\s*>'
+  " Continue a blockquote. The marker takes a space, or stands alone on its
+  " line - `>no space` is a paragraph, so it must not hold the quote indent
+  " (markup-carve/carve#525, same rule as syntax/carve.vim).
+  if prev =~# '^[ \t]*>\( \|$\)'
     return prev_indent
   endif
 
