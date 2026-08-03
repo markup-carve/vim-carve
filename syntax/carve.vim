@@ -68,9 +68,12 @@ syntax match carveCaption    /^\s*\^\s.*$/ contains=@carveInline,@Spell
 
 " ---------------------------------------------------------------------------
 " Lists: -, *, +, ordered (1. 1) a. A. i. I. ...), task markers.
+"
+" The BARE DOT is a marker on its own (carve#472): `.` alone continues an
+" ordered sequence, and is the only marker allowed to drop its value.
 " ---------------------------------------------------------------------------
 syntax match carveListBullet /^\s*[-*+]\s\+/me=e-1
-syntax match carveListNumber /^\s*\%(\d\+\|[a-zA-Z]\|[ivxIVX]\+\)[.)]\s\+/me=e-1
+syntax match carveListNumber /^\s*\%(\%(\d\+\|[a-zA-Z]\|[ivxIVX]\+\)[.)]\|\.\)\s\+/me=e-1
 syntax match carveListTask   /^\s*[-*+]\s\+\[[ xX\-_>?]\]/
       \ contains=carveListBullet,carveTaskMark
 syntax match carveTaskMark   /\[[ xX\-_>?]\]/ contained
