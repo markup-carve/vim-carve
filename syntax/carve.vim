@@ -39,12 +39,12 @@ syntax keyword carveTodo contained TODO FIXME XXX NOTE
 " ---------------------------------------------------------------------------
 " Headings: ATX # .. ######
 " ---------------------------------------------------------------------------
-syntax match carveHeading1 /^#\s\+\S\@=.*$/      contains=@carveInline,@Spell
-syntax match carveHeading2 /^##\s\+\S\@=.*$/     contains=@carveInline,@Spell
-syntax match carveHeading3 /^###\s\+\S\@=.*$/    contains=@carveInline,@Spell
-syntax match carveHeading4 /^####\s\+\S\@=.*$/   contains=@carveInline,@Spell
-syntax match carveHeading5 /^#####\s\+\S\@=.*$/  contains=@carveInline,@Spell
-syntax match carveHeading6 /^######\s\+\S\@=.*$/ contains=@carveInline,@Spell
+syntax match carveHeading1 /^# \+\S\@=.*$/      contains=@carveInline,@Spell
+syntax match carveHeading2 /^## \+\S\@=.*$/     contains=@carveInline,@Spell
+syntax match carveHeading3 /^### \+\S\@=.*$/    contains=@carveInline,@Spell
+syntax match carveHeading4 /^#### \+\S\@=.*$/   contains=@carveInline,@Spell
+syntax match carveHeading5 /^##### \+\S\@=.*$/  contains=@carveInline,@Spell
+syntax match carveHeading6 /^###### \+\S\@=.*$/ contains=@carveInline,@Spell
 
 " ---------------------------------------------------------------------------
 " Thematic break: --- *** ___
@@ -68,7 +68,7 @@ syntax match carveAttrKey   /[[:alnum:]_-]\+=/  contained
 " paragraphs - nesting is written `> > x`, a space per marker, and a tab does
 " not separate (markup-carve/carve#525).
 syntax match carveBlockquote /^[ \t]*>\( \|$\).*$/ contains=@carveInline,@Spell
-syntax match carveCaption    /^\s*\^\s\+\S\@=.*$/ contains=@carveInline,@Spell
+syntax match carveCaption    /^\s*\^ \+\S\@=.*$/ contains=@carveInline,@Spell
 
 " ---------------------------------------------------------------------------
 " Lists: -, *, +, ordered (1. 1) a. A. i. I. ...), task markers.
@@ -84,14 +84,14 @@ syntax match carveCaption    /^\s*\^\s\+\S\@=.*$/ contains=@carveInline,@Spell
 " still needs content: carve-rs renders `. ` as `<p>.</p>`, the same as every
 " other content-less marker, so the guard above applies to it too.
 " ---------------------------------------------------------------------------
-syntax match carveListBullet /^\s*[-*+]\s\+\S\@=/me=e-1
-syntax match carveListNumber /^\s*\%(\%(\d\+\|[a-zA-Z]\|[ivxIVX]\+\)[.)]\|\.\)\s\+\S\@=/me=e-1
-syntax match carveListTask   /^\s*[-*+]\s\+\[[ xX\-_>?]\]/
+syntax match carveListBullet /^\s*[-*+] \+\S\@=/me=e-1
+syntax match carveListNumber /^\s*\%(\%(\d\+\|[a-zA-Z]\|[ivxIVX]\+\)[.)]\|\.\) \+\S\@=/me=e-1
+syntax match carveListTask   /^\s*[-*+] \+\[[ xX\-_>?]\]/
       \ contains=carveListBullet,carveTaskMark
 syntax match carveTaskMark   /\[[ xX\-_>?]\]/ contained
 
 " Definition lists: '::' term then ':' definition.
-syntax match carveDefTerm /^::\s\+\S\@=.*$/ contains=@carveInline,@Spell
+syntax match carveDefTerm /^:: \+\S\@=.*$/ contains=@carveInline,@Spell
 syntax match carveDefBody /^:\s\+\S\@=.*$/  contains=@carveInline,@Spell
 
 " Lone + / > continuation markers at column 0 (attach next block).
@@ -150,9 +150,9 @@ syntax match carveTableRule   /^\s*|[-=:| ]\+$/
 " Reference & footnote definitions at start of line.
 "   [ref]: url   /   [^id]: footnote   /   *[ABBR]: expansion
 " ---------------------------------------------------------------------------
-syntax match carveRefDef   /^\s*\[[^^][^]]*\]:\s.*$/ contains=carveRefLabel,carveUrl
-syntax match carveFootDef  /^\s*\[\^[^]]\+\]:\s.*$/  contains=carveFootRef,@carveInline
-syntax match carveAbbrDef  /^\s*\*\[[^]]\+\]:\s.*$/  contains=carveAbbrLabel
+syntax match carveRefDef   /^\s*\[[^^][^]]*\]: .*$/ contains=carveRefLabel,carveUrl
+syntax match carveFootDef  /^\s*\[\^[^]]\+\]: .*$/  contains=carveFootRef,@carveInline
+syntax match carveAbbrDef  /^\s*\*\[[^]]\+\]: .*$/  contains=carveAbbrLabel
 syntax match carveRefLabel  /\[[^]]*\]/ contained
 syntax match carveAbbrLabel /\*\[[^]]*\]/ contained
 
