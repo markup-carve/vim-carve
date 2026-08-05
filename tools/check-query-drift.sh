@@ -8,6 +8,12 @@
 # as well.
 #
 # A copy that nothing compares is a copy only until someone edits one side.
+#
+# Comparing against tree-sitter-carve's `main` meant comparing against a
+# moving target: the queries could pass today and drift tomorrow with
+# nothing here changing. Compare against the same commit lua/carve/init.lua's
+# install_revision pins instead - the two are bumped together, so a green
+# result here means the queries actually match the grammar users install.
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,9 +21,15 @@ root="$(dirname "$here")"
 upstream="${CARVE_TREE_SITTER_DIR:-}"
 
 if [[ -z "$upstream" ]]; then
+  rev="$(sed -n "s/.*install_revision = '\([0-9a-f]\{40\}\)'.*/\1/p" "$root/lua/carve/init.lua" | head -n1)"
+  if [[ -z "$rev" ]]; then
+    echo "Could not extract a pinned rev from lua/carve/init.lua's install_revision" >&2
+    exit 1
+  fi
   work="$(mktemp -d)"
   trap 'rm -rf "$work"' EXIT
-  git clone --quiet --depth 1 https://github.com/markup-carve/tree-sitter-carve "$work/ts"
+  git clone --quiet https://github.com/markup-carve/tree-sitter-carve "$work/ts"
+  git -C "$work/ts" checkout --quiet "$rev"
   upstream="$work/ts"
 fi
 
