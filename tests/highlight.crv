@@ -1,0 +1,20 @@
+# Heading one
+%%^^^^^^^^^^^^^ carveHeading1
+
+Text with *bold* and /italic/ and `code` here.
+%%          ^ carveDelim
+%%           ^^^^ carveBold
+%%                      ^^^^^^ carveItalic
+%%                                   ^^^^ carveCode
+
+A :smile: symbol and a [link](/url) and ^[a note].
+%%  ^^^^^^^ carveSymbol
+%%                        ^^^^ carveLink
+%%                             ^^^^^^ carveLinkUrl
+%%                                        ^^^^^^^^^ carveFootInline
+
+- item
+%%^ carveListBullet
+
+> quoted
+%%^^^^^^^^ carveBlockquote
