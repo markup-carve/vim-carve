@@ -51,6 +51,21 @@ jobs:
           done
           echo "All tree-sitter query files present."
 
+      # Loading is not the same as HIGHLIGHTING. Every step above this one is
+      # satisfied by a syntax file that defines nothing: sourcing it succeeds,
+      # the query files are present, and the drift checks compare copies of
+      # OTHER projects' files. A rule deleted from syntax/carve.vim broke none of
+      # them.
+      #
+      # tests/highlight.crv carries the assertions in the document itself, in
+      # Sublime's shape - a `%%` line whose carets mark columns of the line above
+      # and name the group each must carry. `%%` is a Carve comment, so the file
+      # stays a valid Carve document, and an assertion cannot drift away from the
+      # source it describes.
+      - name: The syntax file actually highlights
+        run: |
+          vim -Nu NONE --cmd "set rtp^=$PWD" -es -S tests/run-highlight.vim tests/highlight.crv
+
       # Present is not the same as correct. These files are copies of
       # tree-sitter-carve's (see README) and nothing compared them, so they
       # drifted: the heading level predicates were off by one and two rule
