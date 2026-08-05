@@ -28,8 +28,12 @@ local DEFAULTS = {
   parser_path = nil,
   -- URL used by the nvim-treesitter parser config for :TSInstall carve.
   install_url = 'https://github.com/markup-carve/tree-sitter-carve',
-  -- Branch/revision to install from.
-  install_revision = 'main',
+  -- Revision to install from. Pinned, not 'main': the bundled queries under
+  -- queries/carve/*.scm are a copy of tree-sitter-carve at this exact commit
+  -- (see README, "Bundled queries"), so an unpinned branch could compile a
+  -- grammar newer or older than the queries and silently miss captures.
+  -- Bump this alongside every query re-copy so the two stay paired.
+  install_revision = '39c9dbb9d0ffeecef9644b84748a5649a7d06ec7',
   -- Map the `carve` filetype to the `carve` language.
   register_filetype = true,
 }

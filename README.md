@@ -114,6 +114,12 @@ This calls `vim.treesitter.language.add('carve', { path = ... })` and maps the
 source of truth: `highlights.scm`, `folds.scm`, `indents.scm`,
 `injections.scm`, `locals.scm`, `textobjects.scm`, `context.scm`.
 
+`install_revision` (below) is pinned to the exact tree-sitter-carve commit
+these were copied from, so `:TSInstall carve` compiles a grammar that matches
+them. Bump both together whenever the queries are re-copied - an unpinned
+`main` would let the compiled grammar and the bundled queries drift apart
+silently.
+
 ## Configuration
 
 | Global                | Default | Effect                                  |
@@ -123,12 +129,12 @@ source of truth: `highlights.scm`, `folds.scm`, `indents.scm`,
 
 `setup()` options (Neovim tree-sitter):
 
-| Option              | Default                                            | Effect                                   |
-|---------------------|----------------------------------------------------|------------------------------------------|
-| `parser_path`       | `nil`                                              | Register a pre-compiled parser directly. |
-| `install_url`       | tree-sitter-carve repo                             | URL for `:TSInstall carve`.              |
-| `install_revision`  | `main`                                             | Branch/revision to install.              |
-| `register_filetype` | `true`                                             | Map `carve` filetype to `carve` lang.    |
+| Option              | Default                                    | Effect                                                |
+|---------------------|---------------------------------------------|------------------------------------------------------|
+| `parser_path`       | `nil`                                       | Register a pre-compiled parser directly.              |
+| `install_url`       | tree-sitter-carve repo                      | URL for `:TSInstall carve`.                           |
+| `install_revision`  | `39c9dbb9d0ffeecef9644b84748a5649a7d06ec7`  | Revision to install (pinned to the bundled queries).  |
+| `register_filetype` | `true`                                      | Map `carve` filetype to `carve` lang.                 |
 
 ## License
 
