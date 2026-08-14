@@ -55,10 +55,18 @@ syntax match carveRule /^\s*\%(-\{3,}\|\*\{3,}\|_\{3,}\)\s*$/
 " Block attributes: {#id .class key=value} on their own line.
 " ---------------------------------------------------------------------------
 syntax match carveBlockAttr /^\s*{[^}]*}\s*$/
-      \ contains=carveAttrId,carveAttrClass,carveAttrKey
+      \ contains=carveAttrId,carveAttrClass,carveAttrKey,carveAttrLang
 syntax match carveAttrId    /#[[:alnum:]_-]\+/ contained
 syntax match carveAttrClass /\.[[:alnum:]_-]\+/ contained
 syntax match carveAttrKey   /[[:alnum:]_-]\+=/  contained
+" The language attribute (markup-carve/carve#1114): a colon, then an optional
+" tag of 1-8 alphanumeric subtags joined by hyphens.
+"
+" Both guards are load-bearing. The lookbehind keeps it an ITEM: an unquoted
+" value may itself begin with a colon (`{key=:fr}`) at the offset the value
+" starts at. The lookahead is what makes an over-long tag prose rather than a
+" partial match - without it `{:toolongtag}` colours `:toolongt` as a language.
+syntax match carveAttrLang  /\%({\|\s\)\@<=:\%([[:alnum:]]\{1,8}\%(-[[:alnum:]]\{1,8}\)*\)\=\%([ \t}]\)\@=/ contained
 
 " ---------------------------------------------------------------------------
 " Blockquotes and captions / attributions.
@@ -198,11 +206,14 @@ syntax match carveFootRef /\[\^[^]]\+\]/
 syntax match carveFootInline /\^\[[^]]*\]/ contains=@carveInlineNoLink
 
 " Spans: [text]{.class}
-syntax match carveSpan /\[[^]]*\]{[^}]*}/ contains=carveAttrClass,carveAttrId,carveAttrKey
+syntax match carveSpan /\[[^]]*\]{[^}]*}/ contains=carveAttrClass,carveAttrId,carveAttrKey,carveAttrLang
 
 " Inline attributes attached to a preceding element: {#id .class k=v}
-syntax match carveInlineAttr /{[#.][^}]*}/
-      \ contains=carveAttrId,carveAttrClass,carveAttrKey
+" The language branch is spelled out rather than folded into the leading `[#.]`
+" class, because the tag has a LENGTH limit: a subtag is at most eight
+" characters, so `{:toolongtag}` is prose and not an attribute block at all.
+syntax match carveInlineAttr /{\%([#.][^}]*\|:\%([[:alnum:]]\{1,8}\%(-[[:alnum:]]\{1,8}\)*\)\=\%([ \t][^}]*\)\=\)}/
+      \ contains=carveAttrId,carveAttrClass,carveAttrKey,carveAttrLang
 
 " Extension inline: :type[content]{attrs}
 syntax match carveExtInline /:[[:alnum:]_-]\+\[[^]]*\]/
@@ -308,6 +319,7 @@ highlight default link carveInlineAttr     PreProc
 highlight default link carveAttrId         Identifier
 highlight default link carveAttrClass      Type
 highlight default link carveAttrKey        Identifier
+highlight default link carveAttrLang       Special
 
 highlight default link carveEscape         Special
 highlight default link carveHardBreak      Special
