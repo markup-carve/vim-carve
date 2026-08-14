@@ -133,7 +133,7 @@ silently.
 |---------------------|---------------------------------------------|------------------------------------------------------|
 | `parser_path`       | `nil`                                       | Register a pre-compiled parser directly.              |
 | `install_url`       | tree-sitter-carve repo                      | URL for `:TSInstall carve`.                           |
-| `install_revision`  | `d93cbf2d45818e9889279f515b1050e25ce5afed`  | Revision to install (tree-sitter-carve 0.1.2; pinned to the bundled queries).  |
+| `install_revision`  | `b6877de1af5f6d1dde55395ebeee32a0483b1946`  | Revision to install (post-0.1.2 main; pinned to the bundled queries).  |
 | `register_filetype` | `true`                                      | Map `carve` filetype to `carve` lang.                 |
 
 ## License

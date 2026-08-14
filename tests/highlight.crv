@@ -18,3 +18,21 @@ A :smile: symbol and a [link](/url) and ^[a note].
 
 > quoted
 %%^^^^^^^^ carveBlockquote
+
+A span with a language [x]{:fr} here.
+%%                           ^^^ carveAttrLang
+%%                       ^^^^ carveSpan
+
+Subtags and a class [y]{:zh-Hant .hl} here.
+%%                        ^^^^^^^^ carveAttrLang
+%%                                 ^^^ carveAttrClass
+
+{:de}
+%% ^^^ carveAttrLang
+
+An over-long tag [u]{:toolongtag} is prose.
+%%                     ^^^^^^^^^ carveSpan
+
+A colon-leading value [v]{key=:fr} is a value.
+%%                          ^^^ carveAttrKey
+%%                              ^^^ carveSpan
