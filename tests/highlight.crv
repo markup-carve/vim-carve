@@ -38,11 +38,11 @@ A colon-leading value [v]{key=:fr} is a value.
 %%                              ^^^ carveSpan
 
 ::: figure
-%%^^^^ carveFigureGroup
-%%    ^^^^^^ carveFigureGroupWord
+%%^^^^^^^^^^ carveFigureGroupFence
 ![one](a.png)
 ^ (a) One
 :::
+%%^^^ carveFigureGroupFence
 ^ Figure #: Group caption
 %%^^^^^^^^^^^^^^^^^^^^^^^^^ carveCaption
 
@@ -50,4 +50,11 @@ A colon-leading value [v]{key=:fr} is a value.
 %%^^^^ carveDivFence
 %%           ^^^^^^^^^^^^^^^^^^^^^ carveDivTitle
 Body.
+:::
+
+::: figure
+:::: figure
+%%^^^^ carveDivFence
+Nested is a generic container.
+::::
 :::
