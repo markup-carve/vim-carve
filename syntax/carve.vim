@@ -146,6 +146,23 @@ syntax keyword carveAdmonition contained note tip warning danger info success ex
 syntax match carveDivTitle /"[^"]*"/ contained
 syntax match carveDivLabel /\[[^]]*\]/ contained
 
+" A BARE `::: figure` opener - the fence, its separator, the kind word, and
+" NOTHING else - is a composite figure (PART 9 4c, markup-carve/carve#1215): one
+" figure of ordered panels, not an admonition. The `\s*$` tail is the whole
+" distinction, and this match sits BEFORE carveDivFence so it wins the line;
+" `::: figure "T"` and `::: figure [g]` match nothing here and stay the generic
+" container the clause says they stay.
+"
+" The separator is a SPACE run, never a tab (grammar PART 7, MARKER SEPARATORS):
+" `:::` + TAB + `figure` opens nothing, so it is left to carveDivFence, which
+" over-colours it exactly as it does today.
+"
+" The group caption needs no rule: it is an ordinary `^ ` line below the closing
+" fence, which carveCaption already claims.
+syntax match carveFigureGroup /^\s*:\{3,} \+figure\s*$/
+      \ contains=carveFigureGroupWord
+syntax match carveFigureGroupWord /figure/ contained
+
 " ---------------------------------------------------------------------------
 " Tables: | cell | with |= headers, alignment and span markers.
 " ---------------------------------------------------------------------------
@@ -298,6 +315,8 @@ highlight default link carveMathDelim      Delimiter
 highlight default link carveLiteralInline  String
 highlight default link carveLiteralDelim   Delimiter
 
+highlight default link carveFigureGroup    Delimiter
+highlight default link carveFigureGroupWord Type
 highlight default link carveDivFence       Delimiter
 highlight default link carveAdmonition     Keyword
 highlight default link carveDivTitle       String
