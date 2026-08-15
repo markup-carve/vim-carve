@@ -36,3 +36,25 @@ An over-long tag [u]{:toolongtag} is prose.
 A colon-leading value [v]{key=:fr} is a value.
 %%                          ^^^ carveAttrKey
 %%                              ^^^ carveSpan
+
+::: figure
+%%^^^^^^^^^^ carveFigureGroupFence
+![one](a.png)
+^ (a) One
+:::
+%%^^^ carveFigureGroupFence
+^ Figure #: Group caption
+%%^^^^^^^^^^^^^^^^^^^^^^^^^ carveCaption
+
+::: figure "A titled figure div"
+%%^^^^ carveDivFence
+%%           ^^^^^^^^^^^^^^^^^^^^^ carveDivTitle
+Body.
+:::
+
+::: figure
+:::: figure
+%%^^^^ carveDivFence
+Nested is a generic container.
+::::
+:::

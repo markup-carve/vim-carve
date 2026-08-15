@@ -146,6 +146,39 @@ syntax keyword carveAdmonition contained note tip warning danger info success ex
 syntax match carveDivTitle /"[^"]*"/ contained
 syntax match carveDivLabel /\[[^]]*\]/ contained
 
+" A BARE `::: figure` opener - the fence, its separator, the kind word, and
+" NOTHING else - is a composite figure (PART 9 4c, markup-carve/carve#1215): one
+" figure of ordered panels, not an admonition. `\s*$` is the whole distinction;
+" `::: figure "T"` and `::: figure [g]` match nothing here and stay the generic
+" container the clause says they stay.
+"
+" A REGION rather than a match, and the region is what carries the rule that
+" GROUPS DO NOT NEST. Its `contains` omits carveFigureGroup, so a bare
+" `::: figure` anywhere inside an open group - at any depth, through a quote or
+" a list item as readily as directly - falls through to carveDivFence, which is
+" the generic reading the clause degrades it to. A plain `syntax match` cannot
+" say that: it has no notion of being inside anything, and it coloured every
+" nested opener as another group.
+"
+" `\z(` / `\z1` is the colon-fence depth rule (PART 9 12): the region closes on
+" a fence of the SAME length as the one that opened it, which is what lets
+" `::::` nest inside `:::`. `keepend` stops an inner item from carrying the
+" region past its own closer.
+"
+" The separator is a SPACE run, never a tab (grammar PART 7, MARKER SEPARATORS):
+" `:::` + TAB + `figure` opens nothing, so it is left to carveDivFence, which
+" over-colours it exactly as it does today.
+"
+" The group caption needs no rule: it is an ordinary `^ ` line below the closing
+" fence, and the region ends AT that fence, so carveCaption claims it at the top
+" level exactly as it claims every other caption.
+syntax region carveFigureGroup
+      \ matchgroup=carveFigureGroupFence
+      \ start=/^\s*\z(:\{3,}\) \+figure\s*$/
+      \ end=/^\s*\z1\s*$/
+      \ keepend
+      \ contains=ALLBUT,carveFigureGroup
+
 " ---------------------------------------------------------------------------
 " Tables: | cell | with |= headers, alignment and span markers.
 " ---------------------------------------------------------------------------
@@ -298,6 +331,8 @@ highlight default link carveMathDelim      Delimiter
 highlight default link carveLiteralInline  String
 highlight default link carveLiteralDelim   Delimiter
 
+highlight default link carveFigureGroup     NONE
+highlight default link carveFigureGroupFence Type
 highlight default link carveDivFence       Delimiter
 highlight default link carveAdmonition     Keyword
 highlight default link carveDivTitle       String
