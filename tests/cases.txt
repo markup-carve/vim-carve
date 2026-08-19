@@ -26,3 +26,9 @@ carveHeading1	# <NBSP>Title
 -	>> x
 carveBlockquote	>
 carveBlockquote	> real quote
+
+# A DELIMITED INLINE COMMENT, `{% ... %}` (markup-carve/carve#1239). The payload
+# is hidden the way `%%` hides a line, so the emphasis rules must not reach in.
+carveCommentDelim	{% a hidden note %}
+carveCommentDelim	{% *not bold* and `not code` %}
+carveDelim	`{% stays code %}`
