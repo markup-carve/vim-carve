@@ -9,13 +9,18 @@ jobs:
   validate:
     name: Validate Vim syntax
     runs-on: ubuntu-latest
+    # Bounded on purpose. On 2026-08-19 `apt-get update` stalled on
+    # archive.ubuntu.com and this job ran for the full six-hour default before
+    # being cancelled, which left a green PR looking dead for two days. A stalled
+    # mirror should cost minutes.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install Vim
+      - name: Install Vim and Neovim
         run: |
           sudo apt-get update
-          sudo apt-get install -y vim
+          sudo apt-get install -y vim neovim
 
       - name: Source syntax/carve.vim (must load without error)
         run: |
@@ -43,6 +48,17 @@ jobs:
       # by hand, which is not a control.
       - name: The shared block battery agrees
         run: ./tests/run-block-battery.sh
+
+      # The Lua half of this plugin had no check at all: lua/carve/init.lua and
+      # lua/carve/lsp.lua could fail to parse and every step above would still
+      # pass, because Vim never sources *.lua.
+      - name: The Lua modules load
+        run: |
+          nvim --headless --clean --cmd "set runtimepath^=$PWD" \
+            -c 'lua require("carve"); require("carve.lsp")' -c 'q'
+
+      - name: The language server wiring does what it claims
+        run: ./tests/run-lsp-tests.sh
 
       - name: Check tree-sitter query files are present
         run: |
