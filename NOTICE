@@ -1,0 +1,9 @@
+Third-party notices for vim-carve
+=================================
+
+The bundled tree-sitter queries under `queries/carve/` are derived from
+tree-sitter-carve, which is MIT licensed:
+
+  Copyright (c) 2024 Jonas Hietala
+
+The full MIT terms are reproduced in LICENSE.
