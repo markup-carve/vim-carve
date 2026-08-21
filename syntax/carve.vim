@@ -282,9 +282,19 @@ syntax region carveCriticDel matchgroup=carveCriticDelim start=/{-/ end=/-}/ one
 syntax region carveCriticSub matchgroup=carveCriticDelim start=/{\~\ze[^}]*\~>/ end=/\~}/ oneline keepend
 syntax region carveCriticCom matchgroup=carveCriticDelim start=/{#/ end=/#}/ oneline keepend
 
+" A DELIMITED INLINE COMMENT, `{% ... %}` (spec PART 9 S21a,
+" markup-carve/carve#1239). It hides its payload the way `%%` hides the rest of
+" a line, so `contains=` admits only carveTodo: the emphasis and attribute
+" rules must not reach inside, or `{% *not bold* %}` colours a bold run inside
+" a comment. Defined after the inline rules so it wins a tie, and `oneline`
+" because the payload cannot cross a line break. A `{%` inside a code span
+" stays code: carveCode starts at the backtick, one column earlier.
+syntax region carveCommentInline matchgroup=carveCommentDelim
+      \ start=/{%/ end=/%}/ oneline keepend contains=carveTodo,@Spell
+
 " Inline cluster (note: no link inside link to avoid recursion).
 syntax cluster carveInlineNoLink contains=carveItalic,carveBold,carveUnderline,carveStrike,carveHighlight,carveSuper,carveSub,carveCode,carveLiteralInline,carveEscape,carveHardBreak,carveMention,carveTag,carveSymbol,carveTypography,carveBraceInline,carveAutolink,carveCrossRef,carveFootRef,carveMathInline,carveCitation,carveCallout
-syntax cluster carveInline contains=@carveInlineNoLink,carveLink,carveImage,carveSpan,carveFootInline,carveRawInline,carveExtInline,carveInlineAttr,carveCriticIns,carveCriticDel,carveCriticSub,carveCriticCom
+syntax cluster carveInline contains=@carveInlineNoLink,carveCommentInline,carveLink,carveImage,carveSpan,carveFootInline,carveRawInline,carveExtInline,carveInlineAttr,carveCriticIns,carveCriticDel,carveCriticSub,carveCriticCom
 
 " ===========================================================================
 " Highlight links to standard groups (colorscheme-agnostic).
@@ -297,6 +307,8 @@ highlight default link carveHeading5 Title
 highlight default link carveHeading6 Title
 
 highlight default link carveComment       Comment
+highlight default link carveCommentInline  Comment
+highlight default link carveCommentDelim   Comment
 highlight default link carveCommentBlock   Comment
 highlight default link carveCommentFence   Comment
 highlight default link carveTodo           Todo
