@@ -29,6 +29,10 @@ upgrade for Neovim users who install the parser.
 - `commentstring=%% %s` and a minimal list/quote indent.
 - Optional concealing (`let g:carve_conceal = 1`) and section folding
   (`let g:carve_folding = 1`).
+- Optional language-server support via
+  [carve-lsp](https://github.com/markup-carve/carve-lsp) (Neovim): diagnostics,
+  hover, completion, go-to-definition, workspace-wide rename, find-references,
+  code actions and formatting.
 
 ## Install
 
@@ -71,6 +75,63 @@ git clone https://github.com/markup-carve/vim-carve \
 ```
 
 That is all you need for the classic regex syntax in either editor.
+
+## Language server (Neovim)
+
+The regex syntax and the tree-sitter queries both describe the document's
+SHAPE. The language server knows what its identifiers MEAN: which `[^note]` has
+no definition, which `</#id>` cross-reference points at nothing, and that
+`**bold**` is a Markdown habit that renders as two literal asterisks in Carve.
+No highlighting rule can answer those.
+
+Install the server, then opt in:
+
+```bash
+npm i -g @markup-carve/carve-lsp
+```
+
+```lua
+require('carve.lsp').setup()
+```
+
+Nothing starts on its own - attaching a server spawns a process, and that is
+your decision rather than a side effect of installing a syntax plugin. If the
+server is not on `PATH`, `setup()` is a no-op that returns a reason instead of
+erroring, so a config that calls it stays valid on a machine without it.
+
+Three attach paths are tried in order, so this works on Neovim 0.8 through
+current, with or without nvim-lspconfig:
+
+| Path | When |
+| ---- | ---- |
+| `vim.lsp.config` + `vim.lsp.enable` | Neovim 0.11+ |
+| nvim-lspconfig | when it is installed |
+| a `FileType` autocmd calling `vim.lsp.start` | always; no dependency |
+
+`setup()` returns which one it used (`'builtin'`, `'lspconfig'`, `'autocmd'`),
+or `nil` plus a reason.
+
+The workspace root is found by walking up for `.git`. That matters rather than
+being a detail: rename, find-references and go-to-definition are workspace-wide,
+so renaming a heading id updates every reference pointing at it - and a server
+rooted at the file's own directory would silently narrow that to one folder.
+
+Options, all optional:
+
+```lua
+require('carve.lsp').setup({
+  cmd = { 'carve-lsp', '--stdio' },   -- the server command
+  filetypes = { 'carve', 'crv' },     -- what to attach to
+  root_markers = { '.git' },          -- how the workspace root is found
+  settings = {},                      -- server settings; see carve-lsp's README
+  single_file_support = true,         -- attach outside a project too
+  on_attach = function(client, bufnr) -- your keymaps
+  end,
+})
+```
+
+`require('carve.lsp').defaults()` returns the table above, for building your own
+config from it instead of calling `setup()`.
 
 ## Tree-sitter (Neovim)
 
