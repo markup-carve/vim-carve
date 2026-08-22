@@ -199,5 +199,5 @@ silently.
 
 ## License
 
-MIT, see [LICENSE](LICENSE). The bundled queries are derived from
-tree-sitter-carve (also MIT); third-party attribution is in [NOTICE](NOTICE).
+The bundled queries are derived from tree-sitter-carve (also MIT);
+third-party attribution is in [NOTICE](NOTICE).
