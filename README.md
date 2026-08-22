@@ -19,13 +19,18 @@ upgrade for Neovim users who install the parser.
 
 - Filetype detection for `*.crv`.
 - Syntax highlighting for headings, inline emphasis (`/italic/`, `*bold*`,
-  `_underline_`, `~strike~`, `=highlight=`, `{^sup^}`, `{,sub,}`, `` `code` ``),
-  links, autolinks, images, cross-refs, references, footnotes, lists and task
-  items, blockquotes and captions, fenced code (with language, `"Header"`,
-  `[Label]`, and raw ` ```=html `), divs and admonitions, block/inline
-  attributes, tables, math (inline `$\`..\``, display `$$\`..\``, ` ```math `),
-  frontmatter, comments (`%%`, `%%% ... %%%`), mentions, tags, smart
-  typography, and CriticMarkup.
+  `/*bold italic*/`, `_underline_`, `~strike~`, `=highlight=`, `{^sup^}`,
+  `{,sub,}`, `` `code` ``) and their braced forms (`{*bold*}`, `{/italic/}`,
+  `{_under_}`, `{~strike~}`, `{=mark=}`), links, autolinks, images in all three
+  forms (`![alt](src)`, `![alt][ref]`, `![alt][]`), cross-refs, references,
+  footnotes, lists and task items, blockquotes and captions, fenced code (with
+  language, `"Header"`, `[Label]`), raw passthrough blocks (` ```=html `), divs
+  and admonitions, line blocks (`::: |`) and local hard-break blocks
+  (`::: \`), block/inline attributes, tables, math (inline `$\`..\``, display
+  `$$\`..\``, ` ```math `), frontmatter, comments (`%%`, `%%% ... %%%`,
+  `{% ... %}`), mentions, tags, smart typography, and CriticMarkup.
+- A verbatim payload stays verbatim: nothing inside a code block, raw block,
+  code span, inline literal, math span or comment is highlighted as markup.
 - `commentstring=%% %s` and a minimal list/quote indent.
 - Optional concealing (`let g:carve_conceal = 1`) and section folding
   (`let g:carve_folding = 1`).

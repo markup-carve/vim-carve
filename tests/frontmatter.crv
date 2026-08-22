@@ -1,0 +1,21 @@
+---
+%%^ carveFrontmatterFence
+title: A document
+%%^ carveFrontmatter
+---
+%%^ carveFrontmatterFence
+
+%% Frontmatter is a START-OF-FILE construct - its rule is anchored with `\%^` -
+%% so it needs a file of its own to be asserted at all. It is here for a second
+%% reason too: the three dashes are also a thematic break and the first two are
+%% also the en-dash typography rule, and on a tie Vim gives the LAST-DEFINED
+%% item priority. The frontmatter region used to be defined first and lost both
+%% ties, so a document's own header was coloured as punctuation.
+
+Body text.
+%%^ (none)
+
+---
+%%^ carveRule
+
+%% Below the frontmatter the same three dashes are an ordinary thematic break.

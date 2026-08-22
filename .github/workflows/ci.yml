@@ -78,9 +78,16 @@ jobs:
       # and name the group each must carry. `%%` is a Carve comment, so the file
       # stays a valid Carve document, and an assertion cannot drift away from the
       # source it describes.
+      #
+      # tests/frontmatter.crv is a second document because frontmatter only
+      # exists at the START of a file, so it cannot be asserted from inside the
+      # first one.
       - name: The syntax file actually highlights
         run: |
-          vim -Nu NONE --cmd "set rtp^=$PWD" -es -S tests/run-highlight.vim tests/highlight.crv
+          for f in tests/highlight.crv tests/frontmatter.crv; do
+            echo "Asserting $f"
+            vim -Nu NONE --cmd "set rtp^=$PWD" -es -S tests/run-highlight.vim "$f"
+          done
 
       # Present is not the same as correct. These files are copies of
       # tree-sitter-carve's (see README) and nothing compared them, so they
