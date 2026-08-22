@@ -58,3 +58,139 @@ Body.
 Nested is a generic container.
 ::::
 :::
+
+%% ---------------------------------------------------------------------------
+%% A BLOCK OPENER OUTRANKS THE INLINE RULE THAT STARTS AT THE SAME COLUMN.
+%%
+%% Vim gives the LAST-DEFINED item priority on a tie, so carveCode (start /`/)
+%% used to claim a ``` fence line and carveStrike (start /~/) a ~~~ one. The
+%% fence then never opened, the emphasis rules ran inside the code, and
+%% `x = *not bold*` was coloured bold. Nothing looked inside a fence, so
+%% nothing failed.
+%% ---------------------------------------------------------------------------
+
+```js
+%%^ carveCodeFence
+x = *not bold* and `not code`
+%%^ carveCodeBlock
+%%    ^ carveCodeBlock
+%%                   ^ carveCodeBlock
+```
+%%^ carveCodeFence
+
+~~~
+%%^ carveCodeFence
+y = ~not struck~
+%%    ^ carveCodeBlock
+~~~
+%%^ carveCodeFence
+
+%% A RAW PASSTHROUGH BLOCK is a code fence whose info string is =FORMAT. It
+%% is its own construct and its payload is handed to that format untouched.
+```=html
+%%^ carveCodeFence
+<b>*not bold*</b>
+%%   ^ carveRawBlock
+```
+%%^ carveCodeFence
+
+```math
+%%^ carveCodeFence
+E = *m*c^2
+%%    ^ carveMathBlock
+```
+%%^ carveCodeFence
+
+%% A thematic break is a whole line of dashes, stars or underscores; the
+%% typography rule claims the first two dashes and the emphasis regions the
+%% stars and underscores.
+---
+%%^ carveRule
+***
+%%^ carveRule
+___
+%%^ carveRule
+
+%% ---------------------------------------------------------------------------
+%% EVERY VERBATIM PAYLOAD IS INERT.
+%%
+%% The construct ledger tracks two things per construct - is it recognized,
+%% and does it keep its payload inert. A live marker inside each payload is
+%% the measurement: if it comes back scoped as emphasis the row leaks, which
+%% is worse than unhighlighted because the colour claims something false.
+%% ---------------------------------------------------------------------------
+
+%% A line comment is written indented here only because this harness reads
+%% an unindented %% line as one of its own assertion lines.
+ %% a *not bold* line comment
+%%      ^ carveComment
+
+text %% a *not bold* trailing comment
+%%          ^ carveComment
+
+ %%%%
+%% ^ carveCommentFence
+a *not bold* line inside a comment block
+%%  ^ carveCommentBlock
+ %%%%
+%% ^ carveCommentFence
+
+a `*not bold*` code span
+%%   ^ carveCode
+
+a !`*not bold*` inline literal
+%%    ^ carveLiteralInline
+
+a `x`{=html} raw inline
+%%  ^ carveRawInline
+
+a $`*not bold*` inline math
+%%    ^ carveMathInline
+
+$$`*not bold*`
+%%   ^ carveMathDisplay
+
+a {% *not bold* %} braced comment
+%%     ^ carveCommentInline
+
+a {# *not bold* #} editorial comment
+%%     ^ carveCriticCom
+
+a <https://x.test/*not*> autolink
+%%                  ^ carveUrl
+
+%% ---------------------------------------------------------------------------
+%% CONSTRUCTS THAT HAD NO RULE OF THEIR OWN.
+%% ---------------------------------------------------------------------------
+
+A /*bold italic*/ run.
+%%  ^ carveBoldItalic
+%%               ^ carveBoldItalic
+
+Forced {*bold*} {/italic/} {_under_} {~strike~} {=mark=} spellings.
+%%       ^ carveForcedBold
+%%                ^ carveForcedItalic
+%%                           ^ carveForcedUnderline
+%%                                     ^ carveForcedStrike
+%%                                                ^ carveForcedHighlight
+
+%% A mismatched brace pair closes nothing and is literal text; the single
+%% rule these five replaced accepted it.
+Not emphasis: {/x*} here.
+%%              ^ (none)
+
+![alt][ref] and ![alt][] images.
+%%^ carveReferenceImage
+%%                ^ carveCollapsedImage
+
+::: |
+%%^ carveLineBlock
+one line per stanza line
+:::
+%%^ carveDivFence
+
+:::: \
+%%^ carveLocalHardBreak
+a local hard-break block
+::::
+%%^ carveDivFence

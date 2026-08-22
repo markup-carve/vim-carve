@@ -18,13 +18,6 @@ syntax sync minlines=50
 syntax spell toplevel
 
 " ---------------------------------------------------------------------------
-" Frontmatter (must be at the very top of the file). --- / ---toml / ---json
-" ---------------------------------------------------------------------------
-syntax region carveFrontmatter matchgroup=carveFrontmatterFence
-      \ start=/\%^---\%(toml\|json\|yaml\)\?$/ end=/^---$/
-      \ keepend contains=@NoSpell
-
-" ---------------------------------------------------------------------------
 " Comments: %% line, text %% trailing, and %%% ... %%% fenced block.
 " ---------------------------------------------------------------------------
 syntax match carveComment /%%.*$/ contains=carveTodo,@Spell
@@ -45,11 +38,6 @@ syntax match carveHeading3 /^### \+\S\@=.*$/    contains=@carveInline,@Spell
 syntax match carveHeading4 /^#### \+\S\@=.*$/   contains=@carveInline,@Spell
 syntax match carveHeading5 /^##### \+\S\@=.*$/  contains=@carveInline,@Spell
 syntax match carveHeading6 /^###### \+\S\@=.*$/ contains=@carveInline,@Spell
-
-" ---------------------------------------------------------------------------
-" Thematic break: --- *** ___
-" ---------------------------------------------------------------------------
-syntax match carveRule /^\s*\%(-\{3,}\|\*\{3,}\|_\{3,}\)\s*$/
 
 " ---------------------------------------------------------------------------
 " Block attributes: {#id .class key=value} on their own line.
@@ -106,25 +94,9 @@ syntax match carveDefBody /^:\s\+\S\@=.*$/  contains=@carveInline,@Spell
 syntax match carveContinuation /^[+]\s*$/
 
 " ---------------------------------------------------------------------------
-" Fenced code blocks: ```lang "Header" [Label] / ~~~ and raw ```=html
+" Math spans: inline $`..` and display $$`..`  (the ```math BLOCK is
+" defined with the other fenced blocks, at the end of this file).
 " ---------------------------------------------------------------------------
-syntax region carveCodeBlock matchgroup=carveCodeFence
-      \ start=/^\s*```.*$/ end=/^\s*```\s*$/ keepend contains=carveCodeInfo,@NoSpell
-syntax region carveCodeBlock matchgroup=carveCodeFence
-      \ start=/^\s*\~\~\~.*$/ end=/^\s*\~\~\~\s*$/ keepend contains=carveCodeInfo,@NoSpell
-" Info string pieces on the opening fence line.
-syntax match carveCodeInfo /^\s*\%(```\|\~\~\~\)=\?[[:alnum:]_+\/-]*/ contained
-      \ contains=carveCodeLang,carveRawFormat
-syntax match carveCodeLang   /\%(```\|\~\~\~\)\zs[[:alnum:]_+\/-]\+/ contained
-syntax match carveRawFormat  /\%(```\|\~\~\~\)=\zs[[:alnum:]_+\/-]\+/ contained
-syntax match carveCodeTitle  /"[^"]*"/ contained containedin=carveCodeFence
-syntax match carveCodeLabel  /\[[^]]*\]/ contained containedin=carveCodeFence
-
-" ---------------------------------------------------------------------------
-" Math: ```math block, inline $`..` and display $$`..`
-" ---------------------------------------------------------------------------
-syntax region carveMathBlock matchgroup=carveCodeFence
-      \ start=/^\s*```math\s*$/ end=/^\s*```\s*$/ keepend contains=@NoSpell
 syntax region carveMathInline matchgroup=carveMathDelim
       \ start=/\$`/ end=/`/ keepend oneline contains=@NoSpell
 syntax region carveMathDisplay matchgroup=carveMathDelim
@@ -145,6 +117,23 @@ syntax match carveDivFence /^\s*:\{3,}.*$/
 syntax keyword carveAdmonition contained note tip warning danger info success example quote
 syntax match carveDivTitle /"[^"]*"/ contained
 syntax match carveDivLabel /\[[^]]*\]/ contained
+
+" A LINE BLOCK (`::: |`) and a LOCAL HARD-BREAK BLOCK (`::: \`), spec PART 9
+" S23. Both are colon fences whose kind is a single punctuation mark rather
+" than a word, so `carveDivFence` above already coloured the line -- as a
+" generic container, which is the one thing they are not: inside them every
+" intra-stanza newline is a hard break.
+"
+" The OPENER is what carries the distinction, so the opener is what gets a
+" name; the body is ordinary inline content and the closer is an ordinary
+" `:::`, which carveDivFence claims exactly as it does for every other
+" container. This is the shape carve-grammars' Sublime and tree-sitter
+" surfaces use for the same two constructs.
+"
+" Defined AFTER carveDivFence on purpose: both patterns start at the same
+" column, and Vim gives the later definition priority.
+syntax match carveLineBlock      /^\s*:\{3,} \+|\s*$/
+syntax match carveLocalHardBreak /^\s*:\{3,} \+\\\s*$/
 
 " A BARE `::: figure` opener - the fence, its separator, the kind word, and
 " NOTHING else - is a composite figure (PART 9 4c, markup-carve/carve#1215): one
@@ -213,12 +202,36 @@ syntax region carveUnderline matchgroup=carveDelim start=/_/    end=/_/    oneli
 syntax region carveStrike    matchgroup=carveDelim start=/\~/   end=/\~/   oneline keepend contains=carveEscape concealends
 syntax region carveHighlight matchgroup=carveDelim start=/=/    end=/=/    oneline keepend contains=carveEscape concealends
 
+" Bold italic, the combined `/*text*/` opener (grammar `bold_italic`). The
+" boundary guards apply to the OUTER `/`; the inner `*` is part of the
+" two-character token, not separately guarded. Without a rule of its own the
+" carveItalic region above claimed the whole run, so a bold-italic span looked
+" merely italic. Defined after carveItalic so it wins the tie at the `/`.
+syntax match carveBoldItalic ,/\*\S[^*]*\*/, contains=carveEscape
+
 " Superscript / subscript: braced forms only, {^text^} and {,text,}.
 syntax match carveSuper /{\^[^{}]*\^}/ contains=carveEscape
 syntax match carveSub   /{,[^{}]*,}/   contains=carveEscape
 
-" Brace forms for intraword emphasis delimiters: {*x*} {/x/} etc.
-syntax match carveBraceInline /{[/*_~=][^{}]*[/*_~=]}/
+" FORCED (braced) emphasis: {/x/} {*x*} {_x_} {~x~} {=x=}. The braced spelling
+" is what lets a delimiter work intraword, and the spec counts each as its own
+" construct.
+"
+" One rule per delimiter, where there used to be one `carveBraceInline` for all
+" five. That rule read `{[/*_~=][^{}]*[/*_~=]}`, which accepted a MISMATCHED
+" pair: `{/x*}` closes nothing in Carve and is literal text, and it was
+" coloured as emphasis. It also gave all five the same `Special` colour, so
+" `{*x*}` did not look bold the way `*x*` does. Splitting fixes both, and each
+" rule links to the same group as its bare twin below.
+"
+" Defined BEFORE the CriticMarkup regions on purpose: `{~old~>new~}` is an
+" editorial substitution, not a forced strike, and carveCriticSub wins the tie
+" at the `{` by being defined later.
+syntax match carveForcedItalic    ,{/[^{}]\+/}, contains=carveEscape
+syntax match carveForcedBold      /{\*[^{}]\+\*}/ contains=carveEscape
+syntax match carveForcedUnderline /{_[^{}]\+_}/   contains=carveEscape
+syntax match carveForcedStrike    /{\~[^{}]\+\~}/ contains=carveEscape
+syntax match carveForcedHighlight /{=[^{}]\+=}/   contains=carveEscape
 
 " Inline code (verbatim) and raw inline `code`{=html}.
 syntax region carveCode matchgroup=carveDelim start=/`/ end=/`/ oneline keepend contains=@NoSpell
@@ -230,6 +243,14 @@ syntax region carveLink matchgroup=carveDelim start=/\[/ end=/\]/ oneline keepen
 syntax match carveLinkUrl /([^)]*)/ contained contains=carveUrl
 syntax match carveLinkRef /\[[^]]*\]/ contained
 syntax match carveImage /!\[[^]]*\]([^)]*)/ contains=carveUrl
+" An image has the same three forms as a link, and only the leading `!` and the
+" rendered element differ. Without these two rules the `!` was left as prose and
+" the rest was claimed by carveLink, so `![alt][ref]` was coloured as a
+" reference LINK - the surface said something false about the document.
+" The full form takes a non-empty label; the collapsed one takes `[]` and reuses
+" the definition the label would have named.
+syntax match carveReferenceImage /!\[[^]]*\]\[[^]]\+\]/
+syntax match carveCollapsedImage /!\[[^]]*\]\[\]/
 syntax match carveAutolink /<\%(https\?\|ftp\|mailto\):[^>]\+>/ contains=carveUrl
 syntax match carveCrossRef /<\/#[[:alnum:]_-]\+>/
 syntax match carveUrl /\%(https\?\|ftp\|mailto\):[^ \t)>]\+/ contained
@@ -293,8 +314,63 @@ syntax region carveCommentInline matchgroup=carveCommentDelim
       \ start=/{%/ end=/%}/ oneline keepend contains=carveTodo,@Spell
 
 " Inline cluster (note: no link inside link to avoid recursion).
-syntax cluster carveInlineNoLink contains=carveItalic,carveBold,carveUnderline,carveStrike,carveHighlight,carveSuper,carveSub,carveCode,carveLiteralInline,carveEscape,carveHardBreak,carveMention,carveTag,carveSymbol,carveTypography,carveBraceInline,carveAutolink,carveCrossRef,carveFootRef,carveMathInline,carveCitation,carveCallout
-syntax cluster carveInline contains=@carveInlineNoLink,carveCommentInline,carveLink,carveImage,carveSpan,carveFootInline,carveRawInline,carveExtInline,carveInlineAttr,carveCriticIns,carveCriticDel,carveCriticSub,carveCriticCom
+syntax cluster carveInlineNoLink contains=carveItalic,carveBold,carveBoldItalic,carveUnderline,carveStrike,carveHighlight,carveSuper,carveSub,carveCode,carveLiteralInline,carveEscape,carveHardBreak,carveMention,carveTag,carveSymbol,carveTypography,carveForcedItalic,carveForcedBold,carveForcedUnderline,carveForcedStrike,carveForcedHighlight,carveAutolink,carveCrossRef,carveFootRef,carveMathInline,carveCitation,carveCallout
+syntax cluster carveInline contains=@carveInlineNoLink,carveCommentInline,carveLink,carveImage,carveReferenceImage,carveCollapsedImage,carveSpan,carveFootInline,carveRawInline,carveExtInline,carveInlineAttr,carveCriticIns,carveCriticDel,carveCriticSub,carveCriticCom
+
+" ===========================================================================
+" BLOCK OPENERS, DEFINED LAST.
+"
+" Vim gives the LAST-DEFINED item priority when two items can start at the same
+" column, and every rule below opens on a character an inline rule also claims:
+" ``` on carveCode, ~~~ on carveStrike, --- on carveTypography and carveBold.
+" Defined next to the other block rules, all of them lost that tie, which is
+" not a cosmetic loss - a fenced block that never opens has no payload, so the
+" emphasis rules ran INSIDE the code and coloured `x = *not bold*` bold. That
+" is the defect carve-grammars#309 fixed in highlight.js, here on a whole
+" family of fences at once. Nothing caught it because no assertion looked
+" inside a fence.
+"
+" So they live here, after every inline rule, and tests/highlight.crv asserts
+" both halves: the fence opens, and its payload stays inert.
+" ===========================================================================
+
+" Thematic break: --- *** ___
+syntax match carveRule /^\s*\%(-\{3,}\|\*\{3,}\|_\{3,}\)\s*$/
+
+" Fenced code blocks: ```lang "Header" [Label] / ~~~
+syntax region carveCodeBlock matchgroup=carveCodeFence
+      \ start=/^\s*```.*$/ end=/^\s*```\s*$/ keepend contains=carveCodeInfo,@NoSpell
+syntax region carveCodeBlock matchgroup=carveCodeFence
+      \ start=/^\s*\~\~\~.*$/ end=/^\s*\~\~\~\s*$/ keepend contains=carveCodeInfo,@NoSpell
+" Info string pieces on the opening fence line.
+syntax match carveCodeInfo /^\s*\%(```\|\~\~\~\)=\?[[:alnum:]_+\/-]*/ contained
+      \ contains=carveCodeLang,carveRawFormat
+syntax match carveCodeLang   /\%(```\|\~\~\~\)\zs[[:alnum:]_+\/-]\+/ contained
+syntax match carveRawFormat  /\%(```\|\~\~\~\)\s*=\zs[[:alnum:]_+\/-]\+/ contained
+syntax match carveCodeTitle  /"[^"]*"/ contained containedin=carveCodeFence
+syntax match carveCodeLabel  /\[[^]]*\]/ contained containedin=carveCodeFence
+
+" A RAW PASSTHROUGH BLOCK (spec PART 9 S11): a code fence whose info string is
+" `=FORMAT`. The payload is handed to that format untouched, so it is not Carve
+" and carries no inline groups - the same treatment carveCodeBlock gives a code
+" payload, under a name of its own because the two are different constructs.
+" Defined after carveCodeBlock, whose start pattern also matches this line.
+syntax region carveRawBlock matchgroup=carveCodeFence
+      \ start=/^\s*```\s*=[[:alnum:]_+\/-]\+\s*$/ end=/^\s*```\s*$/
+      \ keepend contains=carveCodeInfo,@NoSpell
+syntax region carveRawBlock matchgroup=carveCodeFence
+      \ start=/^\s*\~\~\~\s*=[[:alnum:]_+\/-]\+\s*$/ end=/^\s*\~\~\~\s*$/
+      \ keepend contains=carveCodeInfo,@NoSpell
+
+" Display math as a fenced block: ```math
+syntax region carveMathBlock matchgroup=carveCodeFence
+      \ start=/^\s*```math\s*$/ end=/^\s*```\s*$/ keepend contains=@NoSpell
+
+" Frontmatter, only at the very top of the file: --- / ---toml / ---json.
+" Last of all, because carveRule above claims the same three dashes.
+syntax region carveFrontmatter matchgroup=carveFrontmatterFence
+      \ start=/\%^---\%(toml\|json\|yaml\)\?$/ end=/^---$/
+      \ keepend contains=@NoSpell
 
 " ===========================================================================
 " Highlight links to standard groups (colorscheme-agnostic).
@@ -332,6 +408,7 @@ highlight default link carveCodeBlock      String
 highlight default link carveCodeFence      Delimiter
 highlight default link carveCodeInfo       Special
 highlight default link carveCodeLang       Type
+highlight default link carveRawBlock       String
 highlight default link carveRawFormat      PreProc
 highlight default link carveCodeTitle      String
 highlight default link carveCodeLabel      Identifier
@@ -346,6 +423,8 @@ highlight default link carveLiteralDelim   Delimiter
 highlight default link carveFigureGroup     NONE
 highlight default link carveFigureGroupFence Type
 highlight default link carveDivFence       Delimiter
+highlight default link carveLineBlock      Type
+highlight default link carveLocalHardBreak Type
 highlight default link carveAdmonition     Keyword
 highlight default link carveDivTitle       String
 highlight default link carveDivLabel       Identifier
@@ -377,7 +456,12 @@ highlight default link carveStrike         Comment
 highlight default link carveHighlight      Search
 highlight default link carveSuper          Special
 highlight default link carveSub            Special
-highlight default link carveBraceInline    Special
+highlight default link carveBoldItalic     Statement
+highlight default link carveForcedItalic    Italic
+highlight default link carveForcedBold      Statement
+highlight default link carveForcedUnderline Underlined
+highlight default link carveForcedStrike    Comment
+highlight default link carveForcedHighlight Search
 highlight default link carveDelim          Delimiter
 
 highlight default link carveCode           String
@@ -387,6 +471,8 @@ highlight default link carveLink           Underlined
 highlight default link carveLinkUrl        Underlined
 highlight default link carveLinkRef        Identifier
 highlight default link carveImage          Identifier
+highlight default link carveReferenceImage Identifier
+highlight default link carveCollapsedImage Identifier
 highlight default link carveAutolink       Underlined
 highlight default link carveCrossRef       Underlined
 highlight default link carveUrl            Underlined
