@@ -89,6 +89,8 @@ y = ~not struck~
 %% is its own construct and its payload is handed to that format untouched.
 ```=html
 %%^ carveCodeFence
+%%   ^ carveCodeInfo
+%%    ^^^^ carveRawFormat
 <b>*not bold*</b>
 %%   ^ carveRawBlock
 ```
@@ -98,6 +100,38 @@ y = ~not struck~
 %%^ carveCodeFence
 E = *m*c^2
 %%    ^ carveMathBlock
+```
+%%^ carveCodeFence
+
+%% ---------------------------------------------------------------------------
+%% THE INFO STRING ON A FENCE OPENER IS AN ITEM OF ITS OWN.
+%%
+%% The language, the raw =FORMAT, the quoted title and the [Label] each carry
+%% their own group. They used to reach for the opener through
+%% `containedin=carveCodeFence`, which names a matchgroup rather than a
+%% container, so nothing could be contained in it and all four came out the
+%% same colour as the backticks.
+%% ---------------------------------------------------------------------------
+
+```js "Header" [Label]
+%%^ carveCodeFence
+%%   ^^ carveCodeLang
+%%     ^ carveCodeInfo
+%%      ^^^^^^^^ carveCodeTitle
+%%              ^ carveCodeInfo
+%%               ^^^^^^^ carveCodeLabel
+x = 1
+%%^ carveCodeBlock
+```
+%%^ carveCodeFence
+
+%% The title and the label live on the OPENER LINE, not in the region, so a
+%% quoted string in the payload stays payload.
+```js
+%%^ carveCodeFence
+s = "not a title" [not a label]
+%%     ^ carveCodeBlock
+%%                   ^ carveCodeBlock
 ```
 %%^ carveCodeFence
 
