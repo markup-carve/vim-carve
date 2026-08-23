@@ -338,33 +338,58 @@ syntax cluster carveInline contains=@carveInlineNoLink,carveCommentInline,carveL
 syntax match carveRule /^\s*\%(-\{3,}\|\*\{3,}\|_\{3,}\)\s*$/
 
 " Fenced code blocks: ```lang "Header" [Label] / ~~~
-syntax region carveCodeBlock matchgroup=carveCodeFence
-      \ start=/^\s*```.*$/ end=/^\s*```\s*$/ keepend contains=carveCodeInfo,@NoSpell
-syntax region carveCodeBlock matchgroup=carveCodeFence
-      \ start=/^\s*\~\~\~.*$/ end=/^\s*\~\~\~\s*$/ keepend contains=carveCodeInfo,@NoSpell
-" Info string pieces on the opening fence line.
-syntax match carveCodeInfo /^\s*\%(```\|\~\~\~\)=\?[[:alnum:]_+\/-]*/ contained
-      \ contains=carveCodeLang,carveRawFormat
-syntax match carveCodeLang   /\%(```\|\~\~\~\)\zs[[:alnum:]_+\/-]\+/ contained
-syntax match carveRawFormat  /\%(```\|\~\~\~\)\s*=\zs[[:alnum:]_+\/-]\+/ contained
-syntax match carveCodeTitle  /"[^"]*"/ contained containedin=carveCodeFence
-syntax match carveCodeLabel  /\[[^]]*\]/ contained containedin=carveCodeFence
+"
+" NO matchgroup here, deliberately. A matchgroup match is not region content,
+" so a `contains=` list cannot reach into it - which is why the info string
+" used to carry no colour of its own, and why `containedin=carveCodeFence`
+" resolved to nothing: a matchgroup only names a highlight group for the start
+" and end matches, it is not a syntax item anything can be contained in.
+" Without it the opener and closer are ordinary content, carveCodeFence
+" colours the delimiter itself, and the rest of the opener line becomes an
+" item the language, format, title and label rules can live inside.
+syntax region carveCodeBlock
+      \ start=/^\s*```.*$/ end=/^\s*```\s*$/ keepend
+      \ contains=carveCodeFence,@NoSpell
+syntax region carveCodeBlock
+      \ start=/^\s*\~\~\~.*$/ end=/^\s*\~\~\~\s*$/ keepend
+      \ contains=carveCodeFence,@NoSpell
+
+" The fence delimiter, and after it the info string.
+"
+" carveCodeInfo has to stay on the OPENER LINE: reachable from the payload it
+" would colour a quoted string in the code as a fence title, which is a new
+" false statement in place of the missing one. Two things hold it there, and
+" both are needed. It is reached through `nextgroup` rather than a region's
+" `contains=` list, and nextgroup carries no `skipnl`, so it cannot cross into
+" the payload. And its pattern is anchored behind the delimiter, so it stays
+" put even where something reaches it anyway - carveFigureGroup contains
+" ALLBUT, which would otherwise let an unanchored `.\+$` colour every line of
+" a figure group.
+syntax match carveCodeFence /^\s*\%(```\|\~\~\~\)/ contained
+      \ nextgroup=carveCodeInfo
+syntax match carveCodeInfo /\%(^\s*\%(```\|\~\~\~\)\)\@<=.\+$/ contained
+      \ contains=carveCodeLang,carveRawFormat,carveCodeTitle,carveCodeLabel
+syntax match carveCodeLang   /[[:alnum:]_+\/-]\+/ contained
+syntax match carveRawFormat  /=\zs[[:alnum:]_+\/-]\+/ contained
+syntax match carveCodeTitle  /"[^"]*"/ contained
+syntax match carveCodeLabel  /\[[^]]*\]/ contained
 
 " A RAW PASSTHROUGH BLOCK (spec PART 9 S11): a code fence whose info string is
 " `=FORMAT`. The payload is handed to that format untouched, so it is not Carve
 " and carries no inline groups - the same treatment carveCodeBlock gives a code
 " payload, under a name of its own because the two are different constructs.
 " Defined after carveCodeBlock, whose start pattern also matches this line.
-syntax region carveRawBlock matchgroup=carveCodeFence
+syntax region carveRawBlock
       \ start=/^\s*```\s*=[[:alnum:]_+\/-]\+\s*$/ end=/^\s*```\s*$/
-      \ keepend contains=carveCodeInfo,@NoSpell
-syntax region carveRawBlock matchgroup=carveCodeFence
+      \ keepend contains=carveCodeFence,@NoSpell
+syntax region carveRawBlock
       \ start=/^\s*\~\~\~\s*=[[:alnum:]_+\/-]\+\s*$/ end=/^\s*\~\~\~\s*$/
-      \ keepend contains=carveCodeInfo,@NoSpell
+      \ keepend contains=carveCodeFence,@NoSpell
 
 " Display math as a fenced block: ```math
-syntax region carveMathBlock matchgroup=carveCodeFence
-      \ start=/^\s*```math\s*$/ end=/^\s*```\s*$/ keepend contains=@NoSpell
+syntax region carveMathBlock
+      \ start=/^\s*```math\s*$/ end=/^\s*```\s*$/ keepend
+      \ contains=carveCodeFence,@NoSpell
 
 " Frontmatter, only at the very top of the file: --- / ---toml / ---json.
 " Last of all, because carveRule above claims the same three dashes.
