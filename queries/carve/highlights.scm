@@ -2,27 +2,27 @@
 
 ((heading
   (marker) @_heading.marker) @markup.heading.1
-  (#eq? @_heading.marker "# "))
+  (#match? @_heading.marker "^# +$"))
 
 ((heading
   (marker) @_heading.marker) @markup.heading.2
-  (#eq? @_heading.marker "## "))
+  (#match? @_heading.marker "^## +$"))
 
 ((heading
   (marker) @_heading.marker) @markup.heading.3
-  (#eq? @_heading.marker "### "))
+  (#match? @_heading.marker "^### +$"))
 
 ((heading
   (marker) @_heading.marker) @markup.heading.4
-  (#eq? @_heading.marker "#### "))
+  (#match? @_heading.marker "^#### +$"))
 
 ((heading
   (marker) @_heading.marker) @markup.heading.5
-  (#eq? @_heading.marker "##### "))
+  (#match? @_heading.marker "^##### +$"))
 
 ((heading
   (marker) @_heading.marker) @markup.heading.6
-  (#eq? @_heading.marker "###### "))
+  (#match? @_heading.marker "^###### +$"))
 
 (thematic_break) @string.special
 
@@ -65,6 +65,16 @@
 (block_quote) @markup.quote
 
 (block_quote_marker) @punctuation.special
+
+; The colon fence's sigil family: `::: |`, `::: >` and `::: \`. Each
+; opens a container whose body already carries its own color, so the sigil is
+; the only character saying which one opened - and none of the three was
+; painted, while every other marker node in this file is.
+(line_block_marker) @punctuation.special
+
+(block_quote_fence_marker) @punctuation.special
+
+(local_hard_break_marker) @punctuation.special
 
 (table_header) @markup.heading
 
@@ -240,7 +250,7 @@
   (comment_line)
   (fenced_comment_block)
   (comment)
-  (inline_comment)
+  (braced_comment)
   (trailing_comment)
 ] @comment
 
@@ -262,91 +272,41 @@
     "}"
   ] @punctuation.bracket)
 
+; A `.foo` in an attribute block, and the colon fence's TYPE WORD. The second
+; used to be spelled `class_name` too, which is what the attribute's rule is
+; called - `admonition_type` is the construct the fence actually opens
+; (grammar.ebnf: any word after the separator is an admonition, and a generic
+; div is the opener with no word at all).
 [
   (class)
-  (class_name)
+  (admonition_type)
 ] @type
 
 ; Composite figures (PART 9 4c, markup-carve/carve#1215). The kind word `figure`
 ; is RESERVED among the `:::` types: a BARE opener - the fence, its separator,
 ; the word, and nothing else - is ONE figure of ordered panels, not an
-; admonition. `!title !label` IS the distinction, and it is the whole reason this
-; belongs in a query rather than in the grammar: the parse tree already tells the
-; two apart by which fields the opener carries, so a reserved kind word needs a
-; reserved capture rather than a new node. An opener carrying a quoted title or a
-; `[label]` matches nothing here and keeps `@type` above, which is the generic
-; Tier-2 container the clause says it stays.
+; admonition. An opener carrying a quoted title or a `[label]` is not that
+; production and takes `@type` above, which is the generic Tier-2 container the
+; clause says it stays.
 ;
-; The group caption needs no rule: it is an ordinary `^ ` line one line below the
-; closing fence, and the parser already places it as a sibling of the container
-; rather than inside it, where the existing `(caption)` patterns claim it.
-((div
-  class: (class_name) @type.builtin
-  !title
-  !label)
-  (#eq? @type.builtin "figure")
-  (#set! priority 105))
-
-; GROUPS DO NOT NEST: a bare `::: figure` inside an open group is a generic
-; container, not an inner group, at ANY depth. A query has no transitive
-; closure - there is no "any descendant" - so the reach is spelled as wildcard
-; chains rooted at the group, one per intervening level, each restoring `@type`
-; on the inner opener at a higher priority than the pattern above gives it.
+; THE PARSE TREE NOW SPELLS THE DISTINCTION, so this is one pattern over one
+; node. It used to be four: a pattern over the admonition's type word with
+; `!title !label` predicates, plus three wildcard chains restoring `@type` on a
+; bare opener nested inside a group, because a query has no transitive closure
+; and GROUPS DO NOT NEST at ANY depth. The chains reached three levels and the
+; residual was written down - a bare opener deeper than that kept the group
+; colour.
 ;
-; Three levels covers every shape the language actually produces: a direct child
-; of the group's content; one intervening container (`div` > `content` > `div`,
-; and `block_quote` > `content` > `div`); and a list item
-; (`list` > `list_item` > `list_item_content` > `div`). The wildcards are
-; deliberate - naming the container types would have to be revisited every time
-; a new block gains a content field, and the chain LENGTH is the real constraint.
+; Both go away because the demotion moved to where depth is free.
+; `src/scanner.c` reads its own open-block stack, so a bare opener inside an
+; open group is an `admonition_type` in the TREE - which is what the engine
+; builds for it too - and no query has to reconstruct the ancestry.
 ;
-; RESIDUAL, written down rather than left to be rediscovered: a bare opener
-; reached through MORE than three levels - a quote inside a list item inside the
-; group, say - keeps the group capture. The parse tree is right either way; only
-; the colour is not.
-((div
-  class: (class_name) @_group.class
-  !title
-  !label
-  content: (content
-    (div
-      class: (class_name) @type
-      !title
-      !label)))
-  (#eq? @_group.class "figure")
-  (#eq? @type "figure")
-  (#set! priority 110))
-
-((div
-  class: (class_name) @_group.class
-  !title
-  !label
-  content: (content
-    (_
-      (_
-        (div
-          class: (class_name) @type
-          !title
-          !label)))))
-  (#eq? @_group.class "figure")
-  (#eq? @type "figure")
-  (#set! priority 110))
-
-((div
-  class: (class_name) @_group.class
-  !title
-  !label
-  content: (content
-    (_
-      (_
-        (_
-          (div
-            class: (class_name) @type
-            !title
-            !label))))))
-  (#eq? @_group.class "figure")
-  (#eq? @type "figure")
-  (#set! priority 110))
+; The group caption needs no rule: it is an ordinary `^ ` line one line below
+; the closing fence, and the parser already places it as a sibling of the
+; container rather than inside it, where the existing `(caption)` patterns claim
+; it.
+(figure_group_marker) @type.builtin
 
 (identifier) @tag
 
@@ -453,6 +413,12 @@
   (link_reference_definition)
 ] @markup.link.url
 
+; A cross-reference with auto text is a LINK but not a URL: `</#Intro>` carries
+; a heading id the renderer resolves to the target's own text, so it takes
+; @markup.link rather than the @markup.link.url above. It used to parse as an
+; autolink and take that capture, which colored a crossref as a web address.
+(auto_text_link) @markup.link
+
 (abbreviation_definition
   (abbreviation_marker) @punctuation.special)
 
@@ -479,6 +445,14 @@
 (footnote_reference
   (reference_label) @markup.link.label)
 
+; An inline note, `^[content]`. Its content is ordinary inline and highlights
+; itself; this marks the note as a whole so a reader can see where it ends -
+; which is the thing the construct is easy to get wrong about, and which this
+; grammar does get wrong for a note holding a bracket run that forms no span
+; (see the RECORDED GAP fixture). Painting the whole node is what makes that
+; visible in an editor rather than only in a tree dump.
+(inline_note) @markup.link.label
+
 [
   (footnote_marker_begin)
   (footnote_marker_end)
@@ -498,6 +472,7 @@
 
 [
   (autolink)
+  (auto_text_link)
   (inline_link_destination)
   (link_destination)
   (code_block)
@@ -508,7 +483,7 @@
   (inline_literal)
   (reference_label)
   (class)
-  (class_name)
+  (admonition_type)
   (identifier)
   (key_value)
   (frontmatter)

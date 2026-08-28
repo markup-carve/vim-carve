@@ -228,3 +228,9 @@ one line per stanza line
 a local hard-break block
 ::::
 %%^ carveDivFence
+
+::: >
+%%^ carveFencedQuote
+the third sigil builds a quote
+:::
+%%^ carveDivFence

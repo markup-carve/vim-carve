@@ -135,6 +135,13 @@ syntax match carveDivLabel /\[[^]]*\]/ contained
 syntax match carveLineBlock      /^\s*:\{3,} \+|\s*$/
 syntax match carveLocalHardBreak /^\s*:\{3,} \+\\\s*$/
 
+" The FENCED BLOCK QUOTE (`::: >`) is the third member of that family
+" (markup-carve/carve#1718). It builds the block quote the marker-prefixed
+" form builds, written without a marker on every line, so it links to the
+" quote group rather than to Type: the sigil is the only thing on the line
+" saying which container opened.
+syntax match carveFencedQuote    /^\s*:\{3,} \+>\s*$/
+
 " A BARE `::: figure` opener - the fence, its separator, the kind word, and
 " NOTHING else - is a composite figure (PART 9 4c, markup-carve/carve#1215): one
 " figure of ordered panels, not an admonition. `\s*$` is the whole distinction;
@@ -450,6 +457,7 @@ highlight default link carveFigureGroupFence Type
 highlight default link carveDivFence       Delimiter
 highlight default link carveLineBlock      Type
 highlight default link carveLocalHardBreak Type
+highlight default link carveFencedQuote    Comment
 highlight default link carveAdmonition     Keyword
 highlight default link carveDivTitle       String
 highlight default link carveDivLabel       Identifier
