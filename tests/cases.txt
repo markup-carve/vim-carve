@@ -32,3 +32,11 @@ carveBlockquote	> real quote
 carveCommentDelim	{% a hidden note %}
 carveCommentDelim	{% *not bold* and `not code` %}
 carveDelim	`{% stays code %}`
+# `+` IS NOT A BULLET (PART 9 SS17). Both of these render as paragraphs, and
+# the bullet rule painted a list marker on each (markup-carve/vim-carve#31).
+-	+ x
+-	+ [ ] x
+# A lone `+` is the continuation marker; a `+` line ending in a pipe is a
+# table continuation row. Told apart by the line alone, no context needed.
+carveContinuation	+
+carveTableContinuation	+ more | z |

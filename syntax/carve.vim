@@ -80,9 +80,13 @@ syntax match carveCaption    /^\s*\^ \+\S\@=.*$/ contains=@carveInline,@Spell
 " still needs content: carve-rs renders `. ` as `<p>.</p>`, the same as every
 " other content-less marker, so the guard above applies to it too.
 " ---------------------------------------------------------------------------
-syntax match carveListBullet /^\s*[-*+] \+\S\@=/me=e-1
+" `+` IS NOT A BULLET (PART 9 SS17): `+ x` and `+ [ ] x` both render as
+" paragraphs. Including it here painted a list marker on two shapes the engine
+" calls prose, and stole the table continuation row's marker - the one `+` line
+" that does open something (markup-carve/vim-carve#31).
+syntax match carveListBullet /^\s*[-*] \+\S\@=/me=e-1
 syntax match carveListNumber /^\s*\%(\%(\d\+\|[a-zA-Z]\|[ivxIVX]\+\)[.)]\|\.\) \+\S\@=/me=e-1
-syntax match carveListTask   /^\s*[-*+] \+\[[ xX\-_>?]\]/
+syntax match carveListTask   /^\s*[-*] \+\[[ xX\-_>?]\]/
       \ contains=carveListBullet,carveTaskMark
 syntax match carveTaskMark   /\[[ xX\-_>?]\]/ contained
 
@@ -182,6 +186,15 @@ syntax match carveTable /^\s*|.*$/ contains=carveTableSep,carveTableHeader,@carv
 syntax match carveTableHeader /|=[<>~]\?/ contained
 syntax match carveTableSep    /[|]/ contained
 syntax match carveTableRule   /^\s*|[-=:| ]\+$/
+
+" A TABLE CONTINUATION ROW: `+` then cells, ending in a pipe
+" (`continuation_row = '+', table_cell, {'|', table_cell}, '|', newline`).
+" It merges into the cell above it, so it is a table row and not a list item -
+" which is what the bullet rule used to make of it. Defined after carveTable so
+" the two never race, and it carries the same contained groups so its cells and
+" pipes highlight the way every other row's do.
+syntax match carveTableContinuation /^\s*+.*|\s*$/
+      \ contains=carveTableSep,carveTableHeader,@carveInline,@Spell
 
 " ---------------------------------------------------------------------------
 " Reference & footnote definitions at start of line.
@@ -465,6 +478,7 @@ highlight default link carveDivLabel       Identifier
 highlight default link carveTable          Normal
 highlight default link carveTableHeader    Title
 highlight default link carveTableSep       Delimiter
+highlight default link carveTableContinuation Normal
 highlight default link carveTableRule      Delimiter
 
 highlight default link carveRefDef         Identifier
