@@ -261,3 +261,36 @@ Options: {{ part.crv @fmt:raw }} done.
 Literal {{path#intro}} and a real #tag.
 %%              ^ (none)
 %%                                  ^ carveTag
+
+%% AN OPTION VALUE IS AN `attribute_value` (PART 9 S19), so it may be quoted,
+%% and a quoted one carries spaces. Read as a run of non-space characters it
+%% scoped `"two` and left `words"` out of the option (vim-carve#35, upstream
+%% carve-grammars#411).
+
+Quoted: {{ part.crv @label:"two words" }} done.
+%%                           ^^^^^^^^^^^ carveIncludeOptionValue
+
+Single: {{ part.crv @label:'two words' }} done.
+%%                           ^^^^^^^^^^^ carveIncludeOptionValue
+
+%% Each quote character admits the other one inside it.
+Other: {{ part.crv @label:"it's here" }} done.
+%%                          ^^^^^^^^^^^ carveIncludeOptionValue
+
+%% A colon INSIDE a quoted value belongs to the value: the rule anchors on the
+%% option's own colon, and a lookbehind on a bare colon started a second value
+%% at this one.
+Colon: {{ part.crv @label:"a:b c" }} done.
+%%                          ^^^^^^^ carveIncludeOptionValue
+
+%% A `}` inside a quoted value stays in the value. The region ends at ` }}`,
+%% not at a bare brace, so nothing here has to widen the unquoted run.
+Brace: {{ part.crv @label:"a}b" }} done.
+%%                          ^^^^^ carveIncludeOptionValue
+
+%% AN UNTERMINATED QUOTE falls back to the unquoted reading and still stops at
+%% the space. It must never pair with a quote further along and paint the rest
+%% of the line as an option: `words` falls out of the option entirely.
+Open: {{ part.crv @label:"two words }} done.
+%%                         ^^^^ carveIncludeOptionValue
+%%                              ^^^^^ carveIncludePath

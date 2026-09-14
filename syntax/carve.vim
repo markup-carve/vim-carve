@@ -321,8 +321,21 @@ syntax match carveTag     /\%(^\|\s\)\zs#[[:alnum:]_][[:alnum:]_-]*/
 " break; an unterminated `{{` therefore never opens a region and stays prose.
 syntax match carveIncludeSection /#[[:alpha:]_][[:alnum:]_-]*/ contained
 syntax match carveIncludeOptionName /@[[:alpha:]_][[:alnum:]_-]*/ contained
-syntax match carveIncludeOptionValue /:\@<=[^ \t}]\+/ contained
-syntax match carveIncludeOption /@[[:alpha:]_][[:alnum:]_-]*:[^ \t}]*/
+" An option VALUE is an `attribute_value`, so it may be quoted and then carries
+" spaces; read as a run of non-space characters it scoped `"two` and left
+" `words"` out (markup-carve/vim-carve#35, upstream carve-grammars#411). An
+" UNTERMINATED quote must fall back to the unquoted run and still stop at the
+" space rather than pair with a quote further along, so both quoted
+" alternatives require their closer. `\zs` anchors the value to the option's
+" OWN colon: a lookbehind on the bare colon also started a second value at a
+" colon inside a quoted one. Vim collections do not match a line break and the region
+" is `oneline`, so the newline bound `quoted_value` needs [CARVE-P4-006] is
+" already supplied here.
+syntax match carveIncludeOptionValue
+      \ /\%(@[[:alpha:]_][[:alnum:]_-]*:\)\@<=\%("\%(\\.\|[^"\\]\)*"\|'\%(\\.\|[^'\\]\)*'\|[^ \t}]\+\)/
+      \ contained
+syntax match carveIncludeOption
+      \ /@[[:alpha:]_][[:alnum:]_-]*:\%("\%(\\.\|[^"\\]\)*"\|'\%(\\.\|[^'\\]\)*'\|[^ \t}]*\)/
       \ contained contains=carveIncludeOptionName,carveIncludeOptionValue
 syntax match carveIncludePath /"[^"]*"\|[^#@}[:space:]"][^#@}[:space:]]*/ contained
 syntax region carveInclude matchgroup=carveIncludeDelim
