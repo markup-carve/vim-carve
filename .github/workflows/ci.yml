@@ -96,6 +96,15 @@ jobs:
       - name: Bundled queries still match tree-sitter-carve
         run: ./tools/check-query-drift.sh
 
+      # Matching upstream byte for byte is not the same as matching the GRAMMAR.
+      # The drift check above compares the queries against the same commit
+      # install_revision pins, so a stale pin passes it, and every Vim assertion
+      # reads syntax/carve.vim, which the tree-sitter half never touches. This
+      # is the only step that reads what the bundled queries CAPTURE from the
+      # grammar Neovim users compile.
+      - name: The bundled queries capture what they claim
+        run: ./tests/run-treesitter-captures.sh
+
       # Separate from the tests above on purpose: this reaches the network, so a
       # failure means the vendored battery is stale (or GitHub is down), not
       # that the syntax is wrong.
