@@ -187,6 +187,12 @@ them. Bump both together whenever the queries are re-copied - an unpinned
 `main` would let the compiled grammar and the bundled queries drift apart
 silently.
 
+Two checks keep that honest. `tools/check-query-drift.sh` proves the copies
+still match tree-sitter-carve at the pinned commit, and
+`tests/run-treesitter-captures.sh` reads what those queries actually capture
+from that grammar - the only check here that can notice a pin left behind, since
+a stale one matches its own queries perfectly.
+
 ## Configuration
 
 | Global                | Default | Effect                                  |
@@ -200,7 +206,7 @@ silently.
 |---------------------|---------------------------------------------|------------------------------------------------------|
 | `parser_path`       | `nil`                                       | Register a pre-compiled parser directly.              |
 | `install_url`       | tree-sitter-carve repo                      | URL for `:TSInstall carve`.                           |
-| `install_revision`  | `fe42577d8780ca00b52f832f22c6fa33d1b065ac`  | Revision to install (post-0.1.5 main, at the include-directive captures; pinned to the bundled queries).  |
+| `install_revision`  | `5d23ffea44e505a4ebf23e632404c11e7f5ae9c0`  | Revision to install (post-0.1.5 main, at the quoted include option value; pinned to the bundled queries).  |
 | `register_filetype` | `true`                                      | Map `carve` filetype to `carve` lang.                 |
 
 ## License
