@@ -234,3 +234,30 @@ a local hard-break block
 the third sigil builds a quote
 :::
 %%^ carveDivFence
+
+%% ---------------------------------------------------------------------------
+%% THE RESERVED INCLUDE DIRECTIVE (PART 9 S19).
+%%
+%% The point of these is the NEGATIVE half: `#intro` must not be carveTag and
+%% `@fmt:raw` must not be carveMention, because a directive is not spelled out
+%% of the constructs its own selector happens to look like.
+%% ---------------------------------------------------------------------------
+
+See {{ chapters/intro.crv #intro }} here.
+%%    ^ carveIncludeDelim
+%%         ^ carveIncludePath
+%%                          ^ carveIncludeSection
+%%                            ^ carveIncludeSection
+%%                                 ^ carveIncludeDelim
+
+Options: {{ part.crv @fmt:raw }} done.
+%%             ^ carveIncludePath
+%%                      ^ carveIncludeOptionName
+%%                         ^ carveIncludeOption
+%%                           ^ carveIncludeOptionValue
+
+%% Both pads are required, so `{{path}}` is ordinary text and the tag rule is
+%% free to claim a `#word` that really is one.
+Literal {{path#intro}} and a real #tag.
+%%              ^ (none)
+%%                                  ^ carveTag

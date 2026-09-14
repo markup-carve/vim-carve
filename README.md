@@ -28,7 +28,8 @@ upgrade for Neovim users who install the parser.
   and admonitions, line blocks (`::: |`) and local hard-break blocks
   (`::: \`), block/inline attributes, tables, math (inline `$\`..\``, display
   `$$\`..\``, ` ```math `), frontmatter, comments (`%%`, `%%% ... %%%`,
-  `{% ... %}`), mentions, tags, smart typography, and CriticMarkup.
+  `{% ... %}`), mentions, tags, smart typography, CriticMarkup, and the
+  reserved include directive (`{{ path #section @opt:value }}`).
 - A verbatim payload stays verbatim: nothing inside a code block, raw block,
   code span, inline literal, math span or comment is highlighted as markup.
 - `commentstring=%% %s` and a minimal list/quote indent.
@@ -199,7 +200,7 @@ silently.
 |---------------------|---------------------------------------------|------------------------------------------------------|
 | `parser_path`       | `nil`                                       | Register a pre-compiled parser directly.              |
 | `install_url`       | tree-sitter-carve repo                      | URL for `:TSInstall carve`.                           |
-| `install_revision`  | `c515ba34838c3c5933694ce621575caa82aaf3bf`  | Revision to install (post-0.1.4 main, at the sigil-family captures; pinned to the bundled queries).  |
+| `install_revision`  | `fe42577d8780ca00b52f832f22c6fa33d1b065ac`  | Revision to install (post-0.1.5 main, at the include-directive captures; pinned to the bundled queries).  |
 | `register_filetype` | `true`                                      | Map `carve` filetype to `carve` lang.                 |
 
 ## License

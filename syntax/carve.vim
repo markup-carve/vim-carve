@@ -177,7 +177,7 @@ syntax region carveFigureGroup
       \ start=/^\s*\z(:\{3,}\) \+figure\s*$/
       \ end=/^\s*\z1\s*$/
       \ keepend
-      \ contains=ALLBUT,carveFigureGroup
+      \ contains=ALLBUT,carveFigureGroup,@carveIncludeParts
 
 " ---------------------------------------------------------------------------
 " Tables: | cell | with |= headers, alignment and span markers.
@@ -308,6 +308,33 @@ syntax match carveCallout /<\d\+>/
 syntax match carveMention /\%(^\|\s\)\zs@[[:alnum:]_][[:alnum:]_-]*/
 syntax match carveTag     /\%(^\|\s\)\zs#[[:alnum:]_][[:alnum:]_-]*/
 
+" RESERVED INCLUDE DIRECTIVE, `{{ path #section @opt:value }}` (spec PART 9
+" S19, markup-carve/carve#291). The core leaves it literal, but a highlighter
+" that does not know the shape shreds it into the constructs its own selector
+" is spelled with: `#intro` IS tag syntax and `@key:value` IS mention syntax,
+" so the two rules above claimed pieces of a directive they have nothing to do
+" with. Defined AFTER them so it wins the tie, and `contains=` admits only the
+" directive's own parts - that exclusion, not the color, is the fix.
+"
+" Both pads are required (`{{path}}` is ordinary text, grammar PART 6) and
+" `oneline` because the directive is one token upstream and cannot cross a line
+" break; an unterminated `{{` therefore never opens a region and stays prose.
+syntax match carveIncludeSection /#[[:alpha:]_][[:alnum:]_-]*/ contained
+syntax match carveIncludeOptionName /@[[:alpha:]_][[:alnum:]_-]*/ contained
+syntax match carveIncludeOptionValue /:\@<=[^ \t}]\+/ contained
+syntax match carveIncludeOption /@[[:alpha:]_][[:alnum:]_-]*:[^ \t}]*/
+      \ contained contains=carveIncludeOptionName,carveIncludeOptionValue
+syntax match carveIncludePath /"[^"]*"\|[^#@}[:space:]"][^#@}[:space:]]*/ contained
+syntax region carveInclude matchgroup=carveIncludeDelim
+      \ start=/{{[ \t]\@=/ end=/[ \t]\@<=}}/
+      \ oneline keepend
+      \ contains=carveIncludePath,carveIncludeSection,carveIncludeOption
+" The parts are reachable ONLY through the region above. Spelled as a cluster
+" so carveFigureGroup's `contains=ALLBUT` can exclude them in one name: that
+" list admits every contained group, and a path pattern with no sigil of its
+" own then claimed `:::: figure` as a path.
+syntax cluster carveIncludeParts contains=carveIncludePath,carveIncludeSection,carveIncludeOption,carveIncludeOptionName,carveIncludeOptionValue
+
 " Symbol shortcodes :name: (word boundary; first name char is a letter, digit,
 " + or -, so :+1:/:-1: match but :_x: stays literal).
 syntax match carveSymbol  /\%(^\|\s\|[([]\)\zs:[[:alnum:]+-][[:alnum:]_+-]*:/
@@ -334,7 +361,7 @@ syntax region carveCommentInline matchgroup=carveCommentDelim
       \ start=/{%/ end=/%}/ oneline keepend contains=carveTodo,@Spell
 
 " Inline cluster (note: no link inside link to avoid recursion).
-syntax cluster carveInlineNoLink contains=carveItalic,carveBold,carveBoldItalic,carveUnderline,carveStrike,carveHighlight,carveSuper,carveSub,carveCode,carveLiteralInline,carveEscape,carveHardBreak,carveMention,carveTag,carveSymbol,carveTypography,carveForcedItalic,carveForcedBold,carveForcedUnderline,carveForcedStrike,carveForcedHighlight,carveAutolink,carveCrossRef,carveFootRef,carveMathInline,carveCitation,carveCallout
+syntax cluster carveInlineNoLink contains=carveInclude,carveItalic,carveBold,carveBoldItalic,carveUnderline,carveStrike,carveHighlight,carveSuper,carveSub,carveCode,carveLiteralInline,carveEscape,carveHardBreak,carveMention,carveTag,carveSymbol,carveTypography,carveForcedItalic,carveForcedBold,carveForcedUnderline,carveForcedStrike,carveForcedHighlight,carveAutolink,carveCrossRef,carveFootRef,carveMathInline,carveCitation,carveCallout
 syntax cluster carveInline contains=@carveInlineNoLink,carveCommentInline,carveLink,carveImage,carveReferenceImage,carveCollapsedImage,carveSpan,carveFootInline,carveRawInline,carveExtInline,carveInlineAttr,carveCriticIns,carveCriticDel,carveCriticSub,carveCriticCom
 
 " ===========================================================================
@@ -532,6 +559,14 @@ highlight default link carveFootDef        Identifier
 
 highlight default link carveMention        Identifier
 highlight default link carveTag            Tag
+
+highlight default link carveIncludeDelim       Special
+highlight default link carveIncludePath        String
+highlight default link carveIncludeSection     Label
+highlight default link carveIncludeOption      Delimiter
+highlight default link carveIncludeOptionName  Identifier
+highlight default link carveIncludeOptionValue Constant
+
 highlight default link carveSymbol         Constant
 highlight default link carveTypography      Special
 
