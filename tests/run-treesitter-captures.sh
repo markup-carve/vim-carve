@@ -110,6 +110,22 @@ run_case 'the option name of a directive with a quoted # is an option name' \
 run_case 'a # inside a quoted option value is not a tag' \
   '{{ part.crv @label:"a #tag" }}'$'\n' 0 22 - -
 
+# A QUOTED RUN MAY HOLD THE `}}` PAIR, and the directive's closer is the first
+# pair OUTSIDE one (markup-carve/carve#2013). syntax/carve.vim already reads it
+# that way (vim-carve#40); this is the same line asserted on the tree-sitter
+# half, so a pin that predates the ruling cannot stay green here.
+#
+#   {{ part.crv @label:"a }} b" }} tail
+#   0  3        12    18 19     27 28
+#
+# The value row asserts its END, not only its name. Both readings paint a
+# `constant` at column 19 and differ only in how far it reaches, so a name-only
+# row would be green under either pin and pin nothing.
+run_case 'a quoted option value may hold the }} pair' \
+  '{{ part.crv @label:"a }} b" }} tail'$'\n' 0 19 constant 27
+run_case 'the closer is the pair outside the quoted run' \
+  '{{ part.crv @label:"a }} b" }} tail'$'\n' 0 28 punctuation.special 30
+
 # The controls. The first is the bound on the widening - a quoted alternative
 # requires its closer, so an unterminated quote falls back to the unquoted run
 # and still stops at the space. The second proves the tag rule still reaches a
@@ -118,7 +134,7 @@ run_case 'control: an unterminated quote still stops at the space' \
   '{{ part.crv @label:"two words }}'$'\n' 0 19 constant 23
 run_case 'control: a tag outside a directive is still a tag' \
   'see #intro here'$'\n' 0 4 tag -
-checks=6
+checks=8
 
 if ((${#fails[@]})); then
   printf 'tree-sitter capture failures:\n'
