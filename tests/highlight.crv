@@ -294,3 +294,33 @@ Brace: {{ part.crv @label:"a}b" }} done.
 Open: {{ part.crv @label:"two words }} done.
 %%                         ^^^^ carveIncludeOptionValue
 %%                              ^^^^^ carveIncludePath
+
+%% A QUOTED RUN MAY CONTAIN THE `}}` PAIR, and the directive's closer is the
+%% first pair OUTSIDE one (markup-carve/carve#2013). The region used to end at
+%% the pair inside the value, leaving `b" }} end` as prose.
+Pair: {{ part.crv @label:"a }} b" }} end
+%%                            ^^ carveIncludeOptionValue
+%%                                  ^^ carveIncludeDelim
+%%                                     ^ (none)
+
+%% The PATH half closed early the same way, and the region ending mid-string is
+%% what let the mention rule claim `@k` - the shredding this whole rule exists
+%% to prevent.
+Path: {{ "a }} b.crv" @k:v }} end
+%%            ^^ carveIncludePath
+%%                      ^ carveIncludeOptionName
+%%                           ^^ carveIncludeDelim
+%%                              ^ (none)
+
+%% AN UNTERMINATED QUOTE opens no run, so the closer is again the FIRST pair and
+%% the rest of the line is prose. This is the half the old bound got right by
+%% accident, and the half a cleverer `end` pattern would have lost.
+Shut: {{ part.crv @label:"two words }} end
+%%                                    ^^ carveIncludeDelim
+%%                                       ^ (none)
+
+%% A quote AFTER the closer is not a run the closer can be pushed past: a skip
+%% match only counts when it starts before the end match.
+Apos: {{ part.crv #sec }} don't it's fine
+%%                       ^^ carveIncludeDelim
+%%                              ^ (none)

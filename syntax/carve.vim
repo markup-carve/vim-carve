@@ -338,8 +338,18 @@ syntax match carveIncludeOption
       \ /@[[:alpha:]_][[:alnum:]_-]*:\%("\%(\\.\|[^"\\]\)*"\|'\%(\\.\|[^'\\]\)*'\|[^ \t}]*\)/
       \ contained contains=carveIncludeOptionName,carveIncludeOptionValue
 syntax match carveIncludePath /"[^"]*"\|[^#@}[:space:]"][^#@}[:space:]]*/ contained
+" The closer is the first `}}` OUTSIDE a quoted run; a quoted run may contain
+" the pair (markup-carve/carve#2013). `end` alone cannot express that - it fired
+" at the first pair whatever the quoting, so BOTH halves closed early: a quoted
+" PATH lost `@k` to carveMention and a quoted VALUE stopped mid-string. `skip`
+" is the region-level form of the rule: the end search resumes AFTER a quoted
+" run, so a pair inside one cannot close the region. An UNTERMINATED quote
+" matches no skip (a Vim collection does not cross a line break), so the
+" fallback to the first `}}` is preserved.
 syntax region carveInclude matchgroup=carveIncludeDelim
-      \ start=/{{[ \t]\@=/ end=/[ \t]\@<=}}/
+      \ start=/{{[ \t]\@=/
+      \ skip=/"\%(\\.\|[^"\\]\)*"\|'\%(\\.\|[^'\\]\)*'/
+      \ end=/[ \t]\@<=}}/
       \ oneline keepend
       \ contains=carveIncludePath,carveIncludeSection,carveIncludeOption
 " The parts are reachable ONLY through the region above. Spelled as a cluster
