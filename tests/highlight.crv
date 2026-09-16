@@ -324,3 +324,293 @@ Shut: {{ part.crv @label:"two words }} end
 Apos: {{ part.crv #sec }} don't it's fine
 %%                       ^^ carveIncludeDelim
 %%                              ^ (none)
+
+%% A BARE DELIMITER NEVER PAIRS ACROSS A LINK DESTINATION OR AN AUTOLINK, in
+%% either direction (PART 9 S9 E2a). Parentheses in a destination nest two deep.
+
+/see [x](http://a.b/c/) now/
+%% ^^^ carveItalic
+%%                        ^^^ carveItalic
+
+/see [x](http://a/b/c) now/
+%% ^^^ carveItalic
+%%                       ^^^ carveItalic
+
+/see <http://a.b/c/> now/
+%% ^^^ carveItalic
+%%                     ^^^ carveItalic
+
+/see <http://a/b> now/
+%% ^^^ carveItalic
+%%                  ^^^ carveItalic
+
+/see ![x](a.png "t/u") now/
+%% ^^^ carveItalic
+%%                       ^^^ carveItalic
+
+/see ![x](a.png 't/u') now/
+%% ^^^ carveItalic
+%%                       ^^^ carveItalic
+
+/see ![x](a.png "t/") now/
+%% ^^^ carveItalic
+%%                      ^^^ carveItalic
+
+/see ![x](a.png 't/') now/
+%% ^^^ carveItalic
+%%                      ^^^ carveItalic
+
+/see [x](foo(bar)/baz) now/
+%% ^^^ carveItalic
+%%                       ^^^ carveItalic
+
+/see [x](foo\)x/y) now/
+%% ^^^ carveItalic
+%%                   ^^^ carveItalic
+
+/see [x](foo(bar(\x))/y) now/
+%% ^^^ carveItalic
+%%                         ^^^ carveItalic
+
+/see <aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:x/y> now/
+%% ^^^ carveItalic
+%%                                                    ^^^ carveItalic
+
+*see [x](http://a.b/c*) now*
+%% ^^^ carveBold
+%%                        ^^^ carveBold
+
+*see [x](http://a*b/c) now*
+%% ^^^ carveBold
+%%                       ^^^ carveBold
+
+*see <http://a.b/c*> now*
+%% ^^^ carveBold
+%%                     ^^^ carveBold
+
+*see <http://a*b> now*
+%% ^^^ carveBold
+%%                  ^^^ carveBold
+
+*see ![x](a.png "t*u") now*
+%% ^^^ carveBold
+%%                       ^^^ carveBold
+
+*see ![x](a.png 't*u') now*
+%% ^^^ carveBold
+%%                       ^^^ carveBold
+
+*see ![x](a.png "t*") now*
+%% ^^^ carveBold
+%%                      ^^^ carveBold
+
+*see ![x](a.png 't*') now*
+%% ^^^ carveBold
+%%                      ^^^ carveBold
+
+*see [x](foo(bar)*baz) now*
+%% ^^^ carveBold
+%%                       ^^^ carveBold
+
+*see [x](foo\)x*y) now*
+%% ^^^ carveBold
+%%                   ^^^ carveBold
+
+*see [x](foo(bar(\x))*y) now*
+%% ^^^ carveBold
+%%                         ^^^ carveBold
+
+*see <aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:x*y> now*
+%% ^^^ carveBold
+%%                                                    ^^^ carveBold
+
+_see [x](http://a.b/c_) now_
+%% ^^^ carveUnderline
+%%                        ^^^ carveUnderline
+
+_see [x](http://a_b/c) now_
+%% ^^^ carveUnderline
+%%                       ^^^ carveUnderline
+
+_see <http://a.b/c_> now_
+%% ^^^ carveUnderline
+%%                     ^^^ carveUnderline
+
+_see <http://a_b> now_
+%% ^^^ carveUnderline
+%%                  ^^^ carveUnderline
+
+_see ![x](a.png "t_u") now_
+%% ^^^ carveUnderline
+%%                       ^^^ carveUnderline
+
+_see ![x](a.png 't_u') now_
+%% ^^^ carveUnderline
+%%                       ^^^ carveUnderline
+
+_see ![x](a.png "t_") now_
+%% ^^^ carveUnderline
+%%                      ^^^ carveUnderline
+
+_see ![x](a.png 't_') now_
+%% ^^^ carveUnderline
+%%                      ^^^ carveUnderline
+
+_see [x](foo(bar)_baz) now_
+%% ^^^ carveUnderline
+%%                       ^^^ carveUnderline
+
+_see [x](foo\)x_y) now_
+%% ^^^ carveUnderline
+%%                   ^^^ carveUnderline
+
+_see [x](foo(bar(\x))_y) now_
+%% ^^^ carveUnderline
+%%                         ^^^ carveUnderline
+
+_see <aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:x_y> now_
+%% ^^^ carveUnderline
+%%                                                    ^^^ carveUnderline
+
+~see [x](http://a.b/c~) now~
+%% ^^^ carveStrike
+%%                        ^^^ carveStrike
+
+~see [x](http://a~b/c) now~
+%% ^^^ carveStrike
+%%                       ^^^ carveStrike
+
+~see <http://a.b/c~> now~
+%% ^^^ carveStrike
+%%                     ^^^ carveStrike
+
+~see <http://a~b> now~
+%% ^^^ carveStrike
+%%                  ^^^ carveStrike
+
+~see ![x](a.png "t~u") now~
+%% ^^^ carveStrike
+%%                       ^^^ carveStrike
+
+~see ![x](a.png 't~u') now~
+%% ^^^ carveStrike
+%%                       ^^^ carveStrike
+
+~see ![x](a.png "t~") now~
+%% ^^^ carveStrike
+%%                      ^^^ carveStrike
+
+~see ![x](a.png 't~') now~
+%% ^^^ carveStrike
+%%                      ^^^ carveStrike
+
+~see [x](foo(bar)~baz) now~
+%% ^^^ carveStrike
+%%                       ^^^ carveStrike
+
+~see [x](foo\)x~y) now~
+%% ^^^ carveStrike
+%%                   ^^^ carveStrike
+
+~see [x](foo(bar(\x))~y) now~
+%% ^^^ carveStrike
+%%                         ^^^ carveStrike
+
+~see <aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:x~y> now~
+%% ^^^ carveStrike
+%%                                                    ^^^ carveStrike
+
+=see [x](http://a.b/c=) now=
+%% ^^^ carveHighlight
+%%                        ^^^ carveHighlight
+
+=see [x](http://a=b/c) now=
+%% ^^^ carveHighlight
+%%                       ^^^ carveHighlight
+
+=see <http://a.b/c=> now=
+%% ^^^ carveHighlight
+%%                     ^^^ carveHighlight
+
+=see <http://a=b> now=
+%% ^^^ carveHighlight
+%%                  ^^^ carveHighlight
+
+=see ![x](a.png "t=u") now=
+%% ^^^ carveHighlight
+%%                       ^^^ carveHighlight
+
+=see ![x](a.png 't=u') now=
+%% ^^^ carveHighlight
+%%                       ^^^ carveHighlight
+
+=see ![x](a.png "t=") now=
+%% ^^^ carveHighlight
+%%                      ^^^ carveHighlight
+
+=see ![x](a.png 't=') now=
+%% ^^^ carveHighlight
+%%                      ^^^ carveHighlight
+
+=see [x](foo(bar)=baz) now=
+%% ^^^ carveHighlight
+%%                       ^^^ carveHighlight
+
+=see [x](foo\)x=y) now=
+%% ^^^ carveHighlight
+%%                   ^^^ carveHighlight
+
+=see [x](foo(bar(\x))=y) now=
+%% ^^^ carveHighlight
+%%                         ^^^ carveHighlight
+
+=see <aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:x=y> now=
+%% ^^^ carveHighlight
+%%                                                    ^^^ carveHighlight
+
+/*see [x](a*/b) now*/
+%%  ^^^ carveBoldItalic
+%%                ^^^ carveBoldItalic
+
+_see <a_b@cd.de> now_
+%% ^^^ carveUnderline
+%%                 ^^^ carveUnderline
+
+/a [b [c] d/](u) e/
+%%                ^^ carveItalic
+
+/a [b \] c/](u) e/
+%%               ^^ carveItalic
+
+/see <foo:ä/b> now/
+%%               ^^^ carveItalic
+
+/see <x@a.b/> now/
+%%              ^^^ (none)
+
+x /a [x](b/) c
+%%   ^ (none)
+
+x /a [x](b "c/") d
+%%   ^ (none)
+
+x /a <foo:b/> c
+%%   ^ (none)
+
+x [x](/b) c/
+%%         ^^ (none)
+
+x <foo:(/y)> z/
+%%            ^^ (none)
+
+x ![x](a(b) "t /u") c/
+%%                   ^^ (none)
+
+x [x](a(b) 't /u') c/
+%%                  ^^ (none)
+
+x <_b@cd.de> y_
+%%            ^^ (none)
+
+x /*a [x](b*/) c
+%%   ^ (none)
