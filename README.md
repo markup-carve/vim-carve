@@ -32,6 +32,13 @@ upgrade for Neovim users who install the parser.
   reserved include directive (`{{ path #section @opt:value }}`).
 - A verbatim payload stays verbatim: nothing inside a code block, raw block,
   code span, inline literal, math span or comment is highlighted as markup.
+- A bare delimiter never pairs across a link destination, an image source or
+  an autolink (PART 9 §9 E2a), so `/see [x](http://a.b/c/) now/` is one
+  italic run. Vim patterns cannot recurse, which leaves four limits: a
+  destination with parentheses three deep, a link label with brackets three
+  deep, a label holding a code span with `]`, and an email autolink with a
+  non-ASCII character are not recognized, so a delimiter inside one can still
+  close the run.
 - `commentstring=%% %s` and a minimal list/quote indent.
 - Optional concealing (`let g:carve_conceal = 1`) and section folding
   (`let g:carve_folding = 1`).

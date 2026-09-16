@@ -214,20 +214,39 @@ syntax match carveAbbrLabel /\*\[[^]]*\]/ contained
 syntax match carveEscape /\\[!-/:-@[-`{-~]/
 syntax match carveHardBreak /\\$/
 
+" A bare delimiter never pairs across a link destination or an autolink
+" (PART 9 S9 E2a). Vim patterns cannot recurse, so parentheses nest two deep
+" in a destination and brackets two deep in a label. The rules built from these
+" pieces are delimited by a backtick, which none of them contains.
+let s:dest_char = '\\[()\\]\|[^ \t()]'
+let s:dest_nest = '\%(' . s:dest_char . '\|(\%(' . s:dest_char . '\)*)\)'
+let s:link_dest = '\%(' . s:dest_char . '\|(' . s:dest_nest . '*)\)*'
+let s:link_title = '\%( \%("\%(\\"\|[^"]\)*"\|''\%(\\''\|[^'']\)*''\)\)\='
+let s:label_char = '\\.\|[^]\\[]'
+let s:link_label = '\[\%(' . s:label_char . '\|\[\%(' . s:label_char . '\)*\]\)*\]'
+let s:url_autolink = '<\a[[:alnum:]+.-]*:\%([[:alnum:]._~:/?#[\]@!$&''()*+,;=%-]'
+      \ . '\|[^\x01-\u009f\u00a0\u00ad\u0600-\u0605\u061c\u06dd\u070f\u0890\u0891\u08e2'
+      \ . '\u1680\u180e\u2000-\u200f\u2028-\u202f\u205f-\u2064\u2066-\u206f\u3000\ufeff'
+      \ . '\ufff9-\ufffb\U000110bd\U000110cd\U00013430-\U0001343f\U0001bca0-\U0001bca3'
+      \ . '\U0001d173-\U0001d17a\U000e0001\U000e0020-\U000e007f]\)\+>'
+let s:email_autolink = '<[[:alnum:]._+-]\+@\%([[:alnum:]_-]\+\.\)\+\a\+>'
+let s:opaque = '\%(!\=' . s:link_label . '(' . s:link_dest . s:link_title . ')'
+      \ . '\|' . s:url_autolink . '\|' . s:email_autolink . '\)'
+
 " Emphasis. Carve: /italic/ *bold* _underline_ ~strike~ =highlight=
 " (bare ^..^ / ,..., are NOT sup/sub -- only braced {^..^} / {,..,} are).
-syntax region carveItalic    matchgroup=carveDelim start=#\v/#  end=#\v/#  oneline keepend contains=carveEscape concealends
-syntax region carveBold      matchgroup=carveDelim start=/\*/   end=/\*/   oneline keepend contains=carveEscape,carveItalic concealends
-syntax region carveUnderline matchgroup=carveDelim start=/_/    end=/_/    oneline keepend contains=carveEscape concealends
-syntax region carveStrike    matchgroup=carveDelim start=/\~/   end=/\~/   oneline keepend contains=carveEscape concealends
-syntax region carveHighlight matchgroup=carveDelim start=/=/    end=/=/    oneline keepend contains=carveEscape concealends
+execute 'syntax region carveItalic    matchgroup=carveDelim start=#\v/#  end=#\v/#  skip=`' . s:opaque . '` oneline keepend contains=carveEscape concealends'
+execute 'syntax region carveBold      matchgroup=carveDelim start=/\*/   end=/\*/   skip=`' . s:opaque . '` oneline keepend contains=carveEscape,carveItalic concealends'
+execute 'syntax region carveUnderline matchgroup=carveDelim start=/_/    end=/_/    skip=`' . s:opaque . '` oneline keepend contains=carveEscape concealends'
+execute 'syntax region carveStrike    matchgroup=carveDelim start=/\~/   end=/\~/   skip=`' . s:opaque . '` oneline keepend contains=carveEscape concealends'
+execute 'syntax region carveHighlight matchgroup=carveDelim start=/=/    end=/=/    skip=`' . s:opaque . '` oneline keepend contains=carveEscape concealends'
 
 " Bold italic, the combined `/*text*/` opener (grammar `bold_italic`). The
 " boundary guards apply to the OUTER `/`; the inner `*` is part of the
 " two-character token, not separately guarded. Without a rule of its own the
 " carveItalic region above claimed the whole run, so a bold-italic span looked
 " merely italic. Defined after carveItalic so it wins the tie at the `/`.
-syntax match carveBoldItalic ,/\*\S[^*]*\*/, contains=carveEscape
+execute 'syntax match carveBoldItalic `/\*\s\@!\%(\%(' . s:opaque . '\|[^*]\)\@>\)\+\*/` contains=carveEscape'
 
 " Superscript / subscript: braced forms only, {^text^} and {,text,}.
 syntax match carveSuper /{\^[^{}]*\^}/ contains=carveEscape
@@ -260,9 +279,9 @@ syntax match carveRawInline /`[^`]*`{=[[:alnum:]_+-]\+}/ contains=@NoSpell
 " Links, autolinks, images, cross-refs, references.
 syntax region carveLink matchgroup=carveDelim start=/\[/ end=/\]/ oneline keepend
       \ nextgroup=carveLinkUrl,carveLinkRef contains=@carveInlineNoLink concealends
-syntax match carveLinkUrl /([^)]*)/ contained contains=carveUrl
+execute 'syntax match carveLinkUrl `(' . s:link_dest . s:link_title . ')` contained contains=carveUrl'
 syntax match carveLinkRef /\[[^]]*\]/ contained
-syntax match carveImage /!\[[^]]*\]([^)]*)/ contains=carveUrl
+execute 'syntax match carveImage `!\[[^]]*\](' . s:link_dest . s:link_title . ')` contains=carveUrl'
 " An image has the same three forms as a link, and only the leading `!` and the
 " rendered element differ. Without these two rules the `!` was left as prose and
 " the rest was claimed by carveLink, so `![alt][ref]` was coloured as a
@@ -271,7 +290,7 @@ syntax match carveImage /!\[[^]]*\]([^)]*)/ contains=carveUrl
 " the definition the label would have named.
 syntax match carveReferenceImage /!\[[^]]*\]\[[^]]\+\]/
 syntax match carveCollapsedImage /!\[[^]]*\]\[\]/
-syntax match carveAutolink /<\%(https\?\|ftp\|mailto\):[^>]\+>/ contains=carveUrl
+execute 'syntax match carveAutolink `' . s:url_autolink . '\|' . s:email_autolink . '` contains=carveUrl'
 syntax match carveCrossRef /<\/#[[:alnum:]_-]\+>/
 syntax match carveUrl /\%(https\?\|ftp\|mailto\):[^ \t)>]\+/ contained
 
