@@ -213,7 +213,7 @@ a stale one matches its own queries perfectly.
 |---------------------|---------------------------------------------|------------------------------------------------------|
 | `parser_path`       | `nil`                                       | Register a pre-compiled parser directly.              |
 | `install_url`       | tree-sitter-carve repo                      | URL for `:TSInstall carve`.                           |
-| `install_revision`  | `5d23ffea44e505a4ebf23e632404c11e7f5ae9c0`  | Revision to install (post-0.1.5 main, at the quoted include option value; pinned to the bundled queries).  |
+| `install_revision`  | `6318aad06c37b1762ef05673df44fef60ac29f0e`  | Revision to install (post-0.1.5 main; pinned to the bundled queries).  |
 | `register_filetype` | `true`                                      | Map `carve` filetype to `carve` lang.                 |
 
 ## License
