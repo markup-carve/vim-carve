@@ -166,6 +166,12 @@ require('carve').setup()
 After install, Neovim picks the parser for the `carve` filetype and applies the
 bundled queries automatically.
 
+This route uses the parser-config API of nvim-treesitter's `master` branch
+(`require('nvim-treesitter.parsers').get_parser_configs()`). The config
+compiles `src/parser.c` and `src/scanner.c` and pins the grammar with
+`revision`. The rewritten `main` branch of nvim-treesitter has no
+`get_parser_configs()`, so there `setup()` registers nothing; use Route 2.
+
 ### Route 2: a pre-compiled parser
 
 If you already built the parser (for example with `tree-sitter build`, which
@@ -194,11 +200,13 @@ them. Bump both together whenever the queries are re-copied - an unpinned
 `main` would let the compiled grammar and the bundled queries drift apart
 silently.
 
-Two checks keep that honest. `tools/check-query-drift.sh` proves the copies
+Three checks keep that honest. `tools/check-query-drift.sh` proves the copies
 still match tree-sitter-carve at the pinned commit, and
 `tests/run-treesitter-captures.sh` reads what those queries actually capture
 from that grammar - the only check here that can notice a pin left behind, since
-a stale one matches its own queries perfectly.
+a stale one matches its own queries perfectly. `tests/run-install-info-build.sh`
+compiles the grammar from exactly the `install_info.files` list that
+`:TSInstall carve` uses and loads the result, so a missing source file fails CI.
 
 ## Configuration
 
