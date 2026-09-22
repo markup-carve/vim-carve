@@ -221,7 +221,7 @@ compiles the grammar from exactly the `install_info.files` list that
 |---------------------|---------------------------------------------|------------------------------------------------------|
 | `parser_path`       | `nil`                                       | Register a pre-compiled parser directly.              |
 | `install_url`       | tree-sitter-carve repo                      | URL for `:TSInstall carve`.                           |
-| `install_revision`  | `a7e74a95f92d3483af91bfe97c4c763d7d43e157`  | Revision to install (post-0.1.5 main; pinned to the bundled queries).  |
+| `install_revision`  | `9323ff5f9d87b20372fc3f4f9052fed67dd176ff`  | Revision to install (the 0.1.6 tag; pinned to the bundled queries).  |
 | `register_filetype` | `true`                                      | Map `carve` filetype to `carve` lang.                 |
 
 ## License
