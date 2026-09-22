@@ -33,7 +33,7 @@ local DEFAULTS = {
   -- (see README, "Bundled queries"), so an unpinned branch could compile a
   -- grammar newer or older than the queries and silently miss captures.
   -- Bump this alongside every query re-copy so the two stay paired.
-  install_revision = 'a7e74a95f92d3483af91bfe97c4c763d7d43e157',
+  install_revision = '9323ff5f9d87b20372fc3f4f9052fed67dd176ff',
   -- Map the `carve` filetype to the `carve` language.
   register_filetype = true,
 }
