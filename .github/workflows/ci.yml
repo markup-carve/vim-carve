@@ -105,6 +105,13 @@ jobs:
       - name: The bundled queries capture what they claim
         run: ./tests/run-treesitter-captures.sh
 
+      # The step above builds with the tree-sitter CLI, which compiles every
+      # src/*.c. `:TSInstall carve` compiles only install_info.files, and that
+      # list left out the external scanner, so users got a parser that could not
+      # load while this job stayed green (vim-carve#47).
+      - name: The parser builds from install_info.files and loads
+        run: ./tests/run-install-info-build.sh
+
       # Separate from the tests above on purpose: this reaches the network, so a
       # failure means the vendored battery is stale (or GitHub is down), not
       # that the syntax is wrong.

@@ -66,8 +66,10 @@ local function register_with_nvim_treesitter(opts)
   configs.carve = {
     install_info = {
       url = opts.install_url,
-      files = { 'src/parser.c' },
-      branch = opts.install_revision,
+      -- The grammar has an external scanner. tests/run-install-info-build.sh
+      -- builds from exactly this list.
+      files = { 'src/parser.c', 'src/scanner.c' },
+      revision = opts.install_revision,
       generate_requires_npm = false,
       requires_generate_from_grammar = false,
     },
