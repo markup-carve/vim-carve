@@ -161,7 +161,8 @@ then opens it.
   `.htm`, `.djot`, `.bbcode` and a few more); for anything else it asks.
 - If the `.crv` file already exists it asks before overwriting;
   `:CarveImport!` overwrites without asking.
-- When the CLI fails, its error is shown as a message.
+- When the CLI fails or prints nothing, the error is shown as a message and
+  no `.crv` file is written. A source buffer with unsaved changes is refused.
 
 It needs the Carve CLI (`npm i -g @markup-carve/carve`). Set `g:carve_command`
 if it is not on `PATH` as `carve`; a list is accepted too, for a command that

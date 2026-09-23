@@ -74,6 +74,10 @@ function M.import(file, opts)
   if vim.fn.filereadable(file) ~= 1 then
     return fail('cannot read ' .. file)
   end
+  local srcbuf = vim.fn.bufnr(file)
+  if srcbuf ~= -1 and vim.bo[srcbuf].modified then
+    return fail(file .. ' has unsaved changes; write it first')
+  end
   local format = opts.format or M.format_for(file)
   if not format then
     return fail('unknown source format for ' .. file .. ' (known: md, html, djot, bbcode)')
@@ -97,6 +101,11 @@ function M.import(file, opts)
   if code ~= 0 then
     local msg = vim.trim(stderr ~= '' and stderr or stdout)
     return fail(string.format('carve migrate failed (exit %d): %s', code, msg))
+  end
+  -- carve-js 0.1.7 run through a .bin or global symlink exits 0 without output.
+  if not stdout:find('%S') and table.concat(vim.fn.readfile(file), '\n'):find('%S') then
+    return fail('carve migrate printed no output for ' .. vim.fn.fnamemodify(file, ':t')
+      .. ' (carve-js 0.1.7 does that when run through a symlink); set g:carve_command')
   end
 
   local fh, err = io.open(target, 'wb')

@@ -22,7 +22,18 @@ cat > "${WORK}/bad" <<'STUB'
 echo 'carve migrate: cannot read' >&2
 exit 2
 STUB
-chmod +x "${WORK}/ok" "${WORK}/bad"
+# carve-js 0.1.7 run through a .bin symlink exits 0 and prints nothing.
+cat > "${WORK}/empty" <<'STUB'
+#!/bin/sh
+exit 0
+STUB
+cat > "${WORK}/argv" <<'STUB'
+#!/bin/sh
+echo "$# [$4]"
+STUB
+chmod +x "${WORK}/ok" "${WORK}/bad" "${WORK}/empty" "${WORK}/argv"
+printf '# notes\n' > "${WORK}/my notes.md"
+printf '[b]x[/b]\n' > "${WORK}/post.bbcode"
 printf '**bold**\n' > "${WORK}/doc.md"
 printf '<p>x</p>\n' > "${WORK}/page.html"
 printf 'old\n' > "${WORK}/page.crv"
@@ -62,6 +73,28 @@ local failed, reason = import.import('${WORK}/doc.md', { force = true, open = fa
 assert(failed == nil and reason:match('exit 2') and reason:match('cannot read'), tostring(reason))
 assert(#notes > 0, 'the CLI error was not reported')
 assert(read('${WORK}/doc.crv') == 'migrate --from markdown\n*bold*\n', 'a failed run clobbered the target')
+
+vim.g.carve_command = '${WORK}/argv'
+assert(import.import('${WORK}/my notes.md', { open = false }) == '${WORK}/my notes.crv')
+assert(read('${WORK}/my notes.crv') == '4 [${WORK}/my notes.md]\n', read('${WORK}/my notes.crv'))
+
+vim.g.carve_command = '${WORK}/empty'
+failed, reason = import.import('${WORK}/post.bbcode', { open = false })
+assert(failed == nil and reason:match('no output'), tostring(reason))
+assert(vim.fn.filereadable('${WORK}/post.crv') == 0, 'an empty conversion was written')
+
+vim.g.carve_command = '${WORK}/ok'
+vim.cmd('edit ${WORK}/post.bbcode')
+vim.api.nvim_buf_set_lines(0, 0, -1, false, { '[i]unsaved[/i]' })
+failed, reason = import.import(nil, { open = false })
+assert(failed == nil and reason:match('unsaved'), tostring(reason))
+assert(vim.fn.filereadable('${WORK}/post.crv') == 0, 'converted the file on disk, not the edited buffer')
+vim.cmd('bwipeout!')
+
+vim.g.carve_command = '${WORK}/no-such-carve'
+failed, reason = import.import('${WORK}/post.bbcode', { open = false })
+assert(failed == nil and reason:match('not found'), tostring(reason))
+assert(vim.fn.filereadable('${WORK}/post.crv') == 0, 'a missing CLI still wrote a file')
 
 assert(vim.fn.exists(':CarveImport') == 2, ':CarveImport is not defined')
 print('import tests ok')
