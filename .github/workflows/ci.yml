@@ -108,6 +108,11 @@ jobs:
       - name: The bundled queries capture what they claim
         run: ./tests/run-treesitter-captures.sh
 
+      # The CLI above never evaluates an injection. This runs injections.scm in
+      # the runner's Neovim, which is 0.9 on ubuntu-latest.
+      - name: The bundled injections behave in Neovim
+        run: ./tests/run-nvim-injection-tests.sh
+
       # The step above builds with the tree-sitter CLI, which compiles every
       # src/*.c. `:TSInstall carve` compiles only install_info.files, and that
       # list left out the external scanner, so users got a parser that could not
