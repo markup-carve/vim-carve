@@ -6,9 +6,9 @@
   (#set! injection.language "latex"))
 
 (code_block
-  (language) @injection.language
+  (language) @_lang
   (code) @injection.content
-  (#carve-injectable? @injection.language))
+  (#carve-set-lang-from-info-string! @_lang))
 
 (raw_block
   (raw_block_info

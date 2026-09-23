@@ -1,8 +1,10 @@
-10c10,11
+9,10c9,11
+<   (language) @injection.language
 <   (code) @injection.content)
 ---
+>   (language) @_lang
 >   (code) @injection.content
->   (#carve-injectable? @injection.language))
+>   (#carve-set-lang-from-info-string! @_lang))
 15c16,17
 <   (content) @injection.content)
 ---

@@ -198,12 +198,20 @@ This calls `vim.treesitter.language.add('carve', { path = ... })` and maps the
 source of truth: `highlights.scm`, `folds.scm`, `indents.scm`,
 `injections.scm`, `locals.scm`, `textobjects.scm`, `context.scm`.
 
-One deliberate delta: `injections.scm` guards every document-named language
-with a `carve-injectable?` predicate, which `plugin/carve.lua` registers. On
-Neovim below 0.10 it refuses to inject Carve into Carve, because 0.9 segfaults
-on a ```` ```carve ```` fence; there such a fence stays plain text. The delta is
-recorded in `tools/query-deltas/injections.scm.diff`, and the drift check
-requires the file to differ from upstream by exactly that.
+Two deliberate deltas in `injections.scm`, both backed by `plugin/carve.lua`:
+
+- The `code_block` pattern resolves the fence's info string with a
+  `carve-set-lang-from-info-string!` directive. It maps what people type (`js`,
+  `py`, `sh`, `yml`) through Vim's filetype detection, so a ```` ```js ```` fence
+  injects the `javascript` parser.
+- Every other document-named language is guarded by a `carve-injectable?`
+  predicate. On Neovim below 0.10 Carve is never injected into Carve (neither by
+  the predicate nor by the directive, which checks the resolved name, so `crv`
+  counts too), because 0.9 segfaults on that self-injection; such a fence stays
+  plain text there.
+
+Both are recorded in `tools/query-deltas/injections.scm.diff`, and the drift
+check requires the file to differ from upstream by exactly that.
 
 `install_revision` (below) is pinned to the exact tree-sitter-carve commit
 these were copied from, so `:TSInstall carve` compiles a grammar that matches
