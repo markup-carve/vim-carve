@@ -55,10 +55,13 @@ jobs:
       - name: The Lua modules load
         run: |
           nvim --headless --clean --cmd "set runtimepath^=$PWD" \
-            -c 'lua require("carve"); require("carve.lsp")' -c 'q'
+            -c 'lua require("carve"); require("carve.lsp"); require("carve.import")' -c 'q'
 
       - name: The language server wiring does what it claims
         run: ./tests/run-lsp-tests.sh
+
+      - name: CarveImport converts through the CLI
+        run: ./tests/run-import-tests.sh
 
       - name: Check tree-sitter query files are present
         run: |
