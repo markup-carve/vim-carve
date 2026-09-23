@@ -74,10 +74,6 @@ function M.import(file, opts)
   if vim.fn.filereadable(file) ~= 1 then
     return fail('cannot read ' .. file)
   end
-  local srcbuf = vim.fn.bufnr(file)
-  if srcbuf ~= -1 and vim.bo[srcbuf].modified then
-    return fail(file .. ' has unsaved changes; write it first')
-  end
   local format = opts.format or M.format_for(file)
   if not format then
     return fail('unknown source format for ' .. file .. ' (known: md, html, djot, bbcode)')
@@ -85,6 +81,12 @@ function M.import(file, opts)
   local target = M.target_for(file)
   if target == file then
     return fail(file .. ' is already a Carve file')
+  end
+  for _, path in ipairs({ file, target }) do
+    local buf = vim.fn.bufnr(path)
+    if buf ~= -1 and vim.bo[buf].modified then
+      return fail(path .. ' has unsaved changes; write or discard them first')
+    end
   end
   local cmd = M.command()
   if vim.fn.executable(cmd[1]) ~= 1 then
@@ -108,12 +110,19 @@ function M.import(file, opts)
       .. ' (carve-js 0.1.7 does that when run through a symlink); set g:carve_command')
   end
 
-  local fh, err = io.open(target, 'wb')
-  if not fh then
+  -- Write beside the target and rename, so a failed write keeps the old file.
+  local tmp = target .. '.carveimport'
+  local fh, err = io.open(tmp, 'wb')
+  local ok = fh and fh:write(stdout)
+  ok = fh and fh:close() and ok
+  -- vim.fn.rename, unlike os.rename, replaces an existing target on Windows.
+  if ok and vim.fn.rename(tmp, target) ~= 0 then
+    ok, err = false, 'rename failed'
+  end
+  if not ok then
+    os.remove(tmp)
     return fail('cannot write ' .. target .. ': ' .. tostring(err))
   end
-  fh:write(stdout)
-  fh:close()
 
   if opts.open ~= false then
     local bufnr = vim.fn.bufnr(target)

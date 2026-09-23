@@ -91,6 +91,13 @@ assert(failed == nil and reason:match('unsaved'), tostring(reason))
 assert(vim.fn.filereadable('${WORK}/post.crv') == 0, 'converted the file on disk, not the edited buffer')
 vim.cmd('bwipeout!')
 
+vim.cmd('edit ${WORK}/post.crv')
+vim.api.nvim_buf_set_lines(0, 0, -1, false, { 'typed, never written' })
+failed, reason = import.import('${WORK}/post.bbcode', { force = true, open = false })
+assert(failed == nil and reason:match('unsaved'), tostring(reason))
+assert(vim.api.nvim_buf_get_lines(0, 0, -1, false)[1] == 'typed, never written', 'unsaved target edits were discarded')
+vim.cmd('bwipeout!')
+
 vim.g.carve_command = '${WORK}/no-such-carve'
 failed, reason = import.import('${WORK}/post.bbcode', { open = false })
 assert(failed == nil and reason:match('not found'), tostring(reason))
