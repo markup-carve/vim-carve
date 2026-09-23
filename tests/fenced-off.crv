@@ -1,0 +1,8 @@
+%% Run with g:carve_fenced_languages set to an empty list: no fence body takes
+%% another language's syntax.
+
+```js
+const n = 1;
+%%          ^ carveCodeBlock
+```
+%%^ carveCodeFence
