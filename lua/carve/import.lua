@@ -129,7 +129,11 @@ function M.import(file, opts)
     if bufnr ~= -1 and vim.api.nvim_buf_is_loaded(bufnr) then
       vim.api.nvim_buf_call(bufnr, function() vim.cmd('silent! edit!') end)
     end
-    vim.cmd('edit ' .. vim.fn.fnameescape(target))
+    local opened, msg = pcall(vim.cmd, 'edit ' .. vim.fn.fnameescape(target))
+    if not opened then
+      vim.notify('CarveImport: written ' .. target .. ' but not opened: ' .. tostring(msg),
+        vim.log.levels.WARN)
+    end
   end
   return target
 end

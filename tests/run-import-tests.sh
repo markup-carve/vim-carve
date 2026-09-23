@@ -98,6 +98,15 @@ assert(failed == nil and reason:match('unsaved'), tostring(reason))
 assert(vim.api.nvim_buf_get_lines(0, 0, -1, false)[1] == 'typed, never written', 'unsaved target edits were discarded')
 vim.cmd('bwipeout!')
 
+vim.o.hidden = false
+vim.cmd('enew')
+vim.api.nvim_buf_set_lines(0, 0, -1, false, { 'scratch' })
+notes = {}
+assert(import.import('${WORK}/doc.md', { force = true }) == '${WORK}/doc.crv')
+assert(#notes == 1 and notes[1]:match('written'), 'no note that the result could not be opened')
+vim.cmd('bwipeout!')
+vim.o.hidden = true
+
 vim.g.carve_command = '${WORK}/no-such-carve'
 failed, reason = import.import('${WORK}/post.bbcode', { open = false })
 assert(failed == nil and reason:match('not found'), tostring(reason))
