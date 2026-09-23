@@ -31,6 +31,35 @@ pcall(function()
     if type(node) == 'table' then
       node = node[#node]
     end
-    return node == nil or vim.treesitter.get_node_text(node, source) ~= 'carve'
+    local lang = node and vim.treesitter.get_node_text(node, source):lower()
+    return lang ~= 'carve' and lang ~= 'crv'
+  end, { force = true })
+end)
+
+-- A fence's info string is what people type (`js`, `py`, `sh`), not a parser
+-- name. Resolve it through Vim's filetype detection first, the way
+-- nvim-treesitter's markdown queries do; the table covers extensions that
+-- need file contents to detect. Namespaced so it never races nvim-treesitter's
+-- own set-lang-from-info-string! at startup.
+pcall(function()
+  local aliases = { crv = 'carve', ex = 'elixir', pl = 'perl', sh = 'bash', uxn = 'uxntal', ts = 'typescript' }
+  vim.treesitter.query.add_directive('carve-set-lang-from-info-string!', function(match, _, source, directive, metadata)
+    local node = match[directive[2]]
+    if type(node) == 'table' then
+      node = node[#node]
+    end
+    if not node then
+      return
+    end
+    local alias = vim.treesitter.get_node_text(node, source):lower()
+    local ft = vim.filetype.match({ filename = 'a.' .. alias }) or aliases[alias] or alias
+    local lang = vim.treesitter.language.get_lang(ft) or ft
+    -- Same guard as carve-injectable?, on the RESOLVED name: `crv` resolves to
+    -- carve too, and Neovim 0.9 segfaults on that self-injection.
+    if lang == 'carve' and vim.fn.has('nvim-0.10') == 0 then
+      return
+    end
+    -- 0.9 takes this as the parser name as-is; 0.10+ resolves it again.
+    metadata['injection.language'] = lang
   end, { force = true })
 end)
