@@ -198,17 +198,26 @@ This calls `vim.treesitter.language.add('carve', { path = ... })` and maps the
 source of truth: `highlights.scm`, `folds.scm`, `indents.scm`,
 `injections.scm`, `locals.scm`, `textobjects.scm`, `context.scm`.
 
+One deliberate delta: `injections.scm` guards every document-named language
+with a `carve-injectable?` predicate, which `plugin/carve.lua` registers. On
+Neovim below 0.10 it refuses to inject Carve into Carve, because 0.9 segfaults
+on a ```` ```carve ```` fence; there such a fence stays plain text. The delta is
+recorded in `tools/query-deltas/injections.scm.diff`, and the drift check
+requires the file to differ from upstream by exactly that.
+
 `install_revision` (below) is pinned to the exact tree-sitter-carve commit
 these were copied from, so `:TSInstall carve` compiles a grammar that matches
 them. Bump both together whenever the queries are re-copied - an unpinned
 `main` would let the compiled grammar and the bundled queries drift apart
 silently.
 
-Three checks keep that honest. `tools/check-query-drift.sh` proves the copies
+Four checks keep that honest. `tools/check-query-drift.sh` proves the copies
 still match tree-sitter-carve at the pinned commit, and
 `tests/run-treesitter-captures.sh` reads what those queries actually capture
 from that grammar - the only check here that can notice a pin left behind, since
-a stale one matches its own queries perfectly. `tests/run-install-info-build.sh`
+a stale one matches its own queries perfectly. `tests/run-nvim-injection-tests.sh`
+runs `injections.scm` inside Neovim (`NVIM_BIN` picks the binary).
+`tests/run-install-info-build.sh`
 compiles the grammar from exactly the `install_info.files` list that
 `:TSInstall carve` uses and loads the result, so a missing source file fails CI.
 

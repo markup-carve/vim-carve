@@ -14,6 +14,10 @@
 # nothing here changing. Compare against the same commit lua/carve/init.lua's
 # install_revision pins instead - the two are bumped together, so a green
 # result here means the queries actually match the grammar users install.
+#
+# A file may carry a Neovim-only delta on top of the copy. The delta is stored
+# as tools/query-deltas/<file>.diff (plain `diff upstream local` output), and
+# the file must differ from upstream by exactly that.
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -46,7 +50,12 @@ for local_file in "$root"/queries/carve/*.scm; do
     drifted+=("$name: no longer exists upstream")
     continue
   fi
-  if ! diff -q "$local_file" "$remote_file" >/dev/null; then
+  delta="$root/tools/query-deltas/$name.diff"
+  if [[ -f "$delta" ]]; then
+    if [[ "$(diff "$remote_file" "$local_file" || true)" != "$(cat "$delta")" ]]; then
+      drifted+=("$name: differs from upstream by more or less than tools/query-deltas/$name.diff")
+    fi
+  elif ! diff -q "$local_file" "$remote_file" >/dev/null; then
     changed="$(diff "$local_file" "$remote_file" | grep -c '^[<>]' || true)"
     drifted+=("$name: differs from upstream ($changed changed lines)")
   fi
