@@ -150,6 +150,28 @@ require('carve.lsp').setup({
 `require('carve.lsp').defaults()` returns the table above, for building your own
 config from it instead of calling `setup()`.
 
+## Importing Markdown, HTML, Djot or BBCode (Neovim)
+
+`:CarveImport [file]` converts a file to Carve with `carve migrate` and writes
+the result next to it with a `.crv` extension (`notes.md` becomes `notes.crv`),
+then opens it.
+
+- Without an argument it converts the current buffer's file.
+- The source format follows the extension (`.md`, `.markdown`, `.html`,
+  `.htm`, `.djot`, `.bbcode` and a few more); for anything else it asks.
+- If the `.crv` file already exists it asks before overwriting;
+  `:CarveImport!` overwrites without asking.
+- When the CLI fails or prints nothing, the error is shown as a message and
+  no `.crv` file is written. A source buffer with unsaved changes is refused.
+
+It needs the Carve CLI (`npm i -g @markup-carve/carve`). Set `g:carve_command`
+if it is not on `PATH` as `carve`; a list is accepted too, for a command that
+takes arguments of its own. From Lua:
+
+```lua
+require('carve.import').import('notes.md', { format = 'markdown', force = true })
+```
+
 ## Tree-sitter (Neovim)
 
 The tree-sitter grammar lives in
@@ -235,6 +257,7 @@ compiles the grammar from exactly the `install_info.files` list that
 |-----------------------|---------|-----------------------------------------|
 | `g:carve_conceal`     | `0`     | `conceallevel=2` to hide markup delims. |
 | `g:carve_folding`     | `0`     | Fold by ATX heading level.              |
+| `g:carve_command`     | `'carve'` | CLI used by `:CarveImport` (string or list). |
 
 `g:carve_fenced_languages` lists the fence tags whose body gets that language's
 Vim syntax, as `tag` or `tag=syntax` (the same shape as vim-markdown's

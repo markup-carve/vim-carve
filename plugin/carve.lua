@@ -63,3 +63,24 @@ pcall(function()
     metadata['injection.language'] = lang
   end, { force = true })
 end)
+
+vim.api.nvim_create_user_command('CarveImport', function(args)
+  local import = require('carve.import')
+  local file = args.args ~= '' and vim.fn.expand(args.args) or vim.api.nvim_buf_get_name(0)
+  local format
+  if file ~= '' and not import.format_for(file) then
+    local names = { 'markdown', 'html', 'djot', 'bbcode' }
+    local choice = vim.fn.confirm('Source format of ' .. vim.fn.fnamemodify(file, ':t') .. '?',
+      '&markdown\n&html\n&djot\n&bbcode', 0)
+    if choice == 0 then
+      return
+    end
+    format = names[choice]
+  end
+  import.import(file, { format = format, force = args.bang })
+end, {
+  nargs = '?',
+  bang = true,
+  complete = 'file',
+  desc = 'Convert Markdown/HTML/Djot/BBCode to a sibling .crv with carve migrate',
+})
