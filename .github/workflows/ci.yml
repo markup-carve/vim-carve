@@ -88,6 +88,9 @@ jobs:
             echo "Asserting $f"
             vim -Nu NONE --cmd "set rtp^=$PWD" -es -S tests/run-highlight.vim "$f"
           done
+          echo "Asserting tests/fenced-off.crv with no fenced languages"
+          vim -Nu NONE --cmd "set rtp^=$PWD" --cmd 'let g:carve_fenced_languages = []' \
+            -es -S tests/run-highlight.vim tests/fenced-off.crv
 
       # Present is not the same as correct. These files are copies of
       # tree-sitter-carve's (see README) and nothing compared them, so they

@@ -428,35 +428,80 @@ syntax match carveRule /^\s*\%(-\{3,}\|\*\{3,}\|_\{3,}\)\s*$/
 
 " Fenced code blocks: ```lang "Header" [Label] / ~~~
 "
-" NO matchgroup here, deliberately. A matchgroup match is not region content,
-" so a `contains=` list cannot reach into it - which is why the info string
-" used to carry no colour of its own, and why `containedin=carveCodeFence`
-" resolved to nothing: a matchgroup only names a highlight group for the start
-" and end matches, it is not a syntax item anything can be contained in.
-" Without it the opener and closer are ordinary content, carveCodeFence
-" colours the delimiter itself, and the rest of the opener line becomes an
-" item the language, format, title and label rules can live inside.
+" The start match is the delimiter run alone, under matchgroup=carveCodeFence,
+" so the rest of the opener line is region content that carveCodeInfo can
+" colour. `\z(` / `\z1` is the code fence closer rule: the same character, at
+" least as long as the opener, so a ``` line inside a ```` fence
+" is payload.
 syntax region carveCodeBlock
-      \ start=/^\s*```.*$/ end=/^\s*```\s*$/ keepend
-      \ contains=carveCodeFence,@NoSpell
+      \ matchgroup=carveCodeFence start=/^\s*\z(`\{3,}\)/
+      \ end=/^\s*\z1`*\s*$/ keepend
+      \ contains=carveCodeInfo,@NoSpell
 syntax region carveCodeBlock
-      \ start=/^\s*\~\~\~.*$/ end=/^\s*\~\~\~\s*$/ keepend
-      \ contains=carveCodeFence,@NoSpell
+      \ matchgroup=carveCodeFence start=/^\s*\z(\~\{3,}\)/
+      \ end=/^\s*\z1\~*\s*$/ keepend
+      \ contains=carveCodeInfo,@NoSpell
 
-" The fence delimiter, and after it the info string.
+" A fence whose language has a Vim syntax file gets that syntax in its body,
+" in the style of vim-markdown's g:markdown_fenced_languages. Each entry is a
+" fence tag, or `tag=syntax` when the two differ. Set the list to [] to embed
+" nothing. Every entry costs a syntax file load per buffer, hence a short
+" default.
+let s:fenced_default = [
+      \ 'bash=sh', 'diff', 'javascript', 'js=javascript', 'json',
+      \ 'py=python', 'python', 'sh', 'ts=typescript', 'typescript', 'yaml',
+      \ 'yml=yaml']
+let s:fenced_included = {}
+for s:entry in get(g:, 'carve_fenced_languages', s:fenced_default)
+  let s:tag = matchstr(s:entry, '^[^=]*')
+  let s:lang = matchstr(s:entry, '[^=]*$')
+  " A carve fence cannot include this file into itself.
+  if s:lang ==# 'carve' || s:lang !~# '^\w\+$'
+    continue
+  endif
+  if !has_key(s:fenced_included, s:lang)
+    let s:fenced_included[s:lang] = 0
+    if !empty(globpath(&runtimepath, 'syntax/' . s:lang . '.vim', 0, 1))
+      let s:isk = &l:iskeyword
+      unlet! b:current_syntax
+      try
+        execute 'syntax include @carveFenced_' . s:lang . ' syntax/' . s:lang . '.vim'
+        let s:fenced_included[s:lang] = 1
+      catch
+      endtry
+      unlet! b:current_syntax
+      " An included file may leave these switched (typescript.vim sets
+      " 'iskeyword', sh.vim the syntax iskeyword).
+      let &l:iskeyword = s:isk
+      syntax iskeyword clear
+      syntax case match
+      syntax spell toplevel
+    endif
+  endif
+  if !s:fenced_included[s:lang]
+    continue
+  endif
+  let s:pat = escape(s:tag, '\/.*$^~[]')
+  for [s:run, s:more] in [['`\{3,}', '`*'], ['\~\{3,}', '\~*']]
+    execute 'syntax region carveCodeBlock_' . s:lang
+          \ . ' matchgroup=carveCodeFence'
+          \ . ' start=/^\s*\z(' . s:run . '\)\ze\s*' . s:pat . '\%(\s\|$\)/'
+          \ . ' end=/^\s*\z1' . s:more . '\s*$/ keepend'
+          \ . ' contains=carveCodeInfo,@carveFenced_' . s:lang . ',@NoSpell'
+  endfor
+endfor
+unlet! s:entry s:tag s:lang s:pat s:run s:more s:isk
+syntax sync minlines=50
+
+" The info string after the opening delimiter. Defined after the included
+" languages so it wins the tie at the start of the opener's info string.
 "
-" carveCodeInfo has to stay on the OPENER LINE: reachable from the payload it
-" would colour a quoted string in the code as a fence title, which is a new
-" false statement in place of the missing one. Two things hold it there, and
-" both are needed. It is reached through `nextgroup` rather than a region's
-" `contains=` list, and nextgroup carries no `skipnl`, so it cannot cross into
-" the payload. And its pattern is anchored behind the delimiter, so it stays
-" put even where something reaches it anyway - carveFigureGroup contains
-" ALLBUT, which would otherwise let an unanchored `.\+$` colour every line of
-" a figure group.
-syntax match carveCodeFence /^\s*\%(```\|\~\~\~\)/ contained
-      \ nextgroup=carveCodeInfo
-syntax match carveCodeInfo /\%(^\s*\%(```\|\~\~\~\)\)\@<=.\+$/ contained
+" It has to stay on the OPENER LINE: reachable from the payload it would colour
+" a quoted string in the code as a fence title. Its pattern is anchored behind
+" a delimiter run, so it stays put even where something reaches it anyway -
+" carveFigureGroup contains ALLBUT, which would otherwise let an unanchored
+" `.\+$` colour every line of a figure group.
+syntax match carveCodeInfo /\%(^\s*\%(`\{3,}\|\~\{3,}\)\)\@<=[^`~].*$/ contained
       \ contains=carveCodeLang,carveRawFormat,carveCodeTitle,carveCodeLabel
 syntax match carveCodeLang   /[[:alnum:]_+\/-]\+/ contained
 syntax match carveRawFormat  /=\zs[[:alnum:]_+\/-]\+/ contained
@@ -469,16 +514,18 @@ syntax match carveCodeLabel  /\[[^]]*\]/ contained
 " payload, under a name of its own because the two are different constructs.
 " Defined after carveCodeBlock, whose start pattern also matches this line.
 syntax region carveRawBlock
-      \ start=/^\s*```\s*=[[:alnum:]_+\/-]\+\s*$/ end=/^\s*```\s*$/
-      \ keepend contains=carveCodeFence,@NoSpell
+      \ matchgroup=carveCodeFence
+      \ start=/^\s*\z(`\{3,}\)\ze\s*=[[:alnum:]_+\/-]\+\s*$/
+      \ end=/^\s*\z1`*\s*$/ keepend contains=carveCodeInfo,@NoSpell
 syntax region carveRawBlock
-      \ start=/^\s*\~\~\~\s*=[[:alnum:]_+\/-]\+\s*$/ end=/^\s*\~\~\~\s*$/
-      \ keepend contains=carveCodeFence,@NoSpell
+      \ matchgroup=carveCodeFence
+      \ start=/^\s*\z(\~\{3,}\)\ze\s*=[[:alnum:]_+\/-]\+\s*$/
+      \ end=/^\s*\z1\~*\s*$/ keepend contains=carveCodeInfo,@NoSpell
 
 " Display math as a fenced block: ```math
 syntax region carveMathBlock
-      \ start=/^\s*```math\s*$/ end=/^\s*```\s*$/ keepend
-      \ contains=carveCodeFence,@NoSpell
+      \ matchgroup=carveCodeFence start=/^\s*\z(`\{3,}\)\zemath\s*$/
+      \ end=/^\s*\z1`*\s*$/ keepend contains=carveCodeInfo,@NoSpell
 
 " Frontmatter, only at the very top of the file: --- / ---toml / ---json.
 " Last of all, because carveRule above claims the same three dashes.

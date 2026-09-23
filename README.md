@@ -30,6 +30,10 @@ upgrade for Neovim users who install the parser.
   `$$\`..\``, ` ```math `), frontmatter, comments (`%%`, `%%% ... %%%`,
   `{% ... %}`), mentions, tags, smart typography, CriticMarkup, and the
   reserved include directive (`{{ path #section @opt:value }}`).
+- Fenced code in a listed language is highlighted as that language (see
+  `g:carve_fenced_languages` below). A fence closes only on its own character,
+  at least as long as its opener, so a four-backtick fence can hold a
+  three-backtick sample.
 - A verbatim payload stays verbatim: nothing inside a code block, raw block,
   code span, inline literal, math span or comment is highlighted as markup.
 - A bare delimiter never pairs across a link destination, an image source or
@@ -214,6 +218,19 @@ compiles the grammar from exactly the `install_info.files` list that
 |-----------------------|---------|-----------------------------------------|
 | `g:carve_conceal`     | `0`     | `conceallevel=2` to hide markup delims. |
 | `g:carve_folding`     | `0`     | Fold by ATX heading level.              |
+
+`g:carve_fenced_languages` lists the fence tags whose body gets that language's
+Vim syntax, as `tag` or `tag=syntax` (the same shape as vim-markdown's
+`g:markdown_fenced_languages`). A tag is skipped when no `syntax/<name>.vim`
+is on the runtimepath. Each entry loads a syntax file per buffer, so the
+default is short:
+
+```vim
+let g:carve_fenced_languages = ['bash=sh', 'diff', 'javascript',
+      \ 'js=javascript', 'json', 'py=python', 'python', 'sh',
+      \ 'ts=typescript', 'typescript', 'yaml', 'yml=yaml']
+" add more, or [] to embed nothing
+```
 
 `setup()` options (Neovim tree-sitter):
 

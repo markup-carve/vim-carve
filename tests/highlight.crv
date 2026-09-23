@@ -69,7 +69,7 @@ Nested is a generic container.
 %% nothing failed.
 %% ---------------------------------------------------------------------------
 
-```js
+```text
 %%^ carveCodeFence
 x = *not bold* and `not code`
 %%^ carveCodeBlock
@@ -113,13 +113,13 @@ E = *m*c^2
 %% same colour as the backticks.
 %% ---------------------------------------------------------------------------
 
-```js "Header" [Label]
+```text "Header" [Label]
 %%^ carveCodeFence
-%%   ^^ carveCodeLang
-%%     ^ carveCodeInfo
-%%      ^^^^^^^^ carveCodeTitle
-%%              ^ carveCodeInfo
-%%               ^^^^^^^ carveCodeLabel
+%%   ^^^^ carveCodeLang
+%%       ^ carveCodeInfo
+%%        ^^^^^^^^ carveCodeTitle
+%%                ^ carveCodeInfo
+%%                 ^^^^^^^ carveCodeLabel
 x = 1
 %%^ carveCodeBlock
 ```
@@ -127,11 +127,79 @@ x = 1
 
 %% The title and the label live on the OPENER LINE, not in the region, so a
 %% quoted string in the payload stays payload.
-```js
+```text
 %%^ carveCodeFence
 s = "not a title" [not a label]
 %%     ^ carveCodeBlock
 %%                   ^ carveCodeBlock
+```
+%%^ carveCodeFence
+
+%% ---------------------------------------------------------------------------
+%% A CODE FENCE CLOSES ON ITS OWN CHARACTER, AT LEAST AS LONG AS ITS OPENER.
+%%
+%% The closer used to be any bare ``` line, so a four-backtick fence holding a
+%% Carve sample ended at the sample's own closer, and a longer closer did not
+%% close at all.
+%% ---------------------------------------------------------------------------
+
+````carve
+%%^^^^ carveCodeFence
+```js
+%%^ carveCodeBlock
+```
+%%^ carveCodeBlock
+still inside the outer fence
+%%^ carveCodeBlock
+````
+%%^^^^ carveCodeFence
+after the outer fence
+%%^ (none)
+
+```
+a
+%%^ carveCodeBlock
+````
+%%^^^^ carveCodeFence
+after a longer closer
+%%^ (none)
+
+~~~~
+~~~
+%%^ carveCodeBlock
+```
+%%^ carveCodeBlock
+~~~~~
+%%^^^^^ carveCodeFence
+after the tilde fence
+%%^ (none)
+
+%% ---------------------------------------------------------------------------
+%% A FENCE BODY TAKES ITS LANGUAGE'S SYNTAX when Vim has a syntax file for it
+%% and the tag is in g:carve_fenced_languages (see tests/fenced-off.crv for an
+%% empty list).
+%% ---------------------------------------------------------------------------
+
+```js
+%%^ carveCodeFence
+%%   ^^ carveCodeLang
+const n = 1;
+%%          ^ javaScriptNumber
+```
+%%^ carveCodeFence
+
+~~~py
+x = 1
+%%    ^ pythonNumber
+~~~
+%%^ carveCodeFence
+
+%% The info string stays the fence's even where the embedded syntax has a rule
+%% that starts at the same column.
+```yml
+%%   ^^^ carveCodeLang
+key: 1
+%%     ^ yamlInteger
 ```
 %%^ carveCodeFence
 
