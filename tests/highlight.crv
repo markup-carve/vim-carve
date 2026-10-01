@@ -682,3 +682,153 @@ x <_b@cd.de> y_
 
 x /*a [x](b*/) c
 %%   ^ (none)
+
+# a `x %% b` c %% hidden
+%%      ^^ carveLineVerbatim
+%%               ^^^^^^^^^ carveTrailingComment
+# a `x`	%% hidden
+%%        ^^^^^^^^^ carveTrailingComment
+![alt](x.png)
+^ cap `x %% b` c %% hidden
+%%        ^^ carveLineVerbatim
+%%                 ^^^^^^^^^ carveTrailingComment
+^ cap `x`	%% hidden
+%%          ^^^^^^^^^ carveTrailingComment
+
+# a `x %% b
+%%       ^^ carveLineVerbatim
+
+# a ``x %% b`` c %% hidden
+%%        ^^ carveLineVerbatim
+%%                 ^^^^^^^^^ carveTrailingComment
+
+# a !`x %% b` c %% hidden
+%%        ^^ carveLineVerbatim
+%%                ^^^^^^^^^ carveTrailingComment
+
+# a $`x %% b` c %% hidden
+%%        ^^ carveLineVerbatim
+%%                ^^^^^^^^^ carveTrailingComment
+
+^ cap `x %% b
+%%         ^^ carveLineVerbatim
+
+^ cap ``x %% b`` c %% hidden
+%%          ^^ carveLineVerbatim
+%%                   ^^^^^^^^^ carveTrailingComment
+
+^ cap !`x %% b` c %% hidden
+%%          ^^ carveLineVerbatim
+%%                  ^^^^^^^^^ carveTrailingComment
+
+^ cap $`x %% b` c %% hidden
+%%          ^^ carveLineVerbatim
+%%                  ^^^^^^^^^ carveTrailingComment
+
+# a `x %% b
+%%       ^^ carveLineVerbatim
+
+# a ``x %% b`` c %% hidden
+%%        ^^ carveLineVerbatim
+%%                 ^^^^^^^^^ carveTrailingComment
+
+# a !`x %% b` c %% hidden
+%%        ^^ carveLineVerbatim
+%%                ^^^^^^^^^ carveTrailingComment
+
+# a $`x %% b` c %% hidden
+%%        ^^ carveLineVerbatim
+%%                ^^^^^^^^^ carveTrailingComment
+
+# a \`x %% hidden
+%%        ^^^^^^^^^ carveTrailingComment
+
+# a \\`x %% hidden
+%%         ^^^^^^^^^ carveLineVerbatim
+
+# a \\\`x %% hidden
+%%          ^^^^^^^^^ carveTrailingComment
+
+# a \\\\`x %% hidden
+%%           ^^^^^^^^^ carveLineVerbatim
+
+^ cap `x %% b
+%%         ^^ carveLineVerbatim
+
+^ cap ``x %% b`` c %% hidden
+%%          ^^ carveLineVerbatim
+%%                   ^^^^^^^^^ carveTrailingComment
+
+^ cap !`x %% b` c %% hidden
+%%          ^^ carveLineVerbatim
+%%                  ^^^^^^^^^ carveTrailingComment
+
+^ cap $`x %% b` c %% hidden
+%%          ^^ carveLineVerbatim
+%%                  ^^^^^^^^^ carveTrailingComment
+
+^ cap \`x %% hidden
+%%          ^^^^^^^^^ carveTrailingComment
+
+^ cap \\`x %% hidden
+%%           ^^^^^^^^^ carveLineVerbatim
+
+^ cap \\\`x %% hidden
+%%            ^^^^^^^^^ carveTrailingComment
+
+^ cap \\\\`x %% hidden
+%%             ^^^^^^^^^ carveLineVerbatim
+
+> # a `x %% b
+%%         ^^ carveLineVerbatim
+
+> # a ``x %% b`` c %% hidden
+%%          ^^ carveLineVerbatim
+%%                   ^^^^^^^^^ carveTrailingComment
+
+> # a !`x %% b` c %% hidden
+%%          ^^ carveLineVerbatim
+%%                  ^^^^^^^^^ carveTrailingComment
+
+> # a $`x %% b` c %% hidden
+%%          ^^ carveLineVerbatim
+%%                  ^^^^^^^^^ carveTrailingComment
+
+> # a \`x %% hidden
+%%          ^^^^^^^^^ carveTrailingComment
+
+> # a \\`x %% hidden
+%%           ^^^^^^^^^ carveLineVerbatim
+
+> # a \\\`x %% hidden
+%%            ^^^^^^^^^ carveTrailingComment
+
+> # a \\\\`x %% hidden
+%%             ^^^^^^^^^ carveLineVerbatim
+
+> ^ cap `x %% b
+%%           ^^ carveLineVerbatim
+
+> ^ cap ``x %% b`` c %% hidden
+%%            ^^ carveLineVerbatim
+%%                     ^^^^^^^^^ carveTrailingComment
+
+> ^ cap !`x %% b` c %% hidden
+%%            ^^ carveLineVerbatim
+%%                    ^^^^^^^^^ carveTrailingComment
+
+> ^ cap $`x %% b` c %% hidden
+%%            ^^ carveLineVerbatim
+%%                    ^^^^^^^^^ carveTrailingComment
+
+> ^ cap \`x %% hidden
+%%            ^^^^^^^^^ carveTrailingComment
+
+> ^ cap \\`x %% hidden
+%%             ^^^^^^^^^ carveLineVerbatim
+
+> ^ cap \\\`x %% hidden
+%%              ^^^^^^^^^ carveTrailingComment
+
+> ^ cap \\\\`x %% hidden
+%%               ^^^^^^^^^ carveLineVerbatim

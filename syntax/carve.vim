@@ -21,6 +21,7 @@ syntax spell toplevel
 " Comments: %% line, text %% trailing, and %%% ... %%% fenced block.
 " ---------------------------------------------------------------------------
 syntax match carveComment /%%.*$/ contains=carveTodo,@Spell
+syntax match carveTrailingComment /[ \t]\zs%%.*$/ contained contains=carveTodo,@Spell
 " A %%% fence line is a delimiter plus an insignificant tail (spec PART 9 S28):
 " only the leading run of % is structural, so `%%% TODO` opens and `%%% end`
 " closes, and `%%% html` is a comment rather than a raw block. \z( \) captures
@@ -32,12 +33,12 @@ syntax keyword carveTodo contained TODO FIXME XXX NOTE
 " ---------------------------------------------------------------------------
 " Headings: ATX # .. ######
 " ---------------------------------------------------------------------------
-syntax match carveHeading1 /^# \+\S\@=.*$/      contains=@carveInline,@Spell
-syntax match carveHeading2 /^## \+\S\@=.*$/     contains=@carveInline,@Spell
-syntax match carveHeading3 /^### \+\S\@=.*$/    contains=@carveInline,@Spell
-syntax match carveHeading4 /^#### \+\S\@=.*$/   contains=@carveInline,@Spell
-syntax match carveHeading5 /^##### \+\S\@=.*$/  contains=@carveInline,@Spell
-syntax match carveHeading6 /^###### \+\S\@=.*$/ contains=@carveInline,@Spell
+syntax match carveHeading1 /^# \+\S\@=.*$/      contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
+syntax match carveHeading2 /^## \+\S\@=.*$/     contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
+syntax match carveHeading3 /^### \+\S\@=.*$/    contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
+syntax match carveHeading4 /^#### \+\S\@=.*$/   contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
+syntax match carveHeading5 /^##### \+\S\@=.*$/  contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
+syntax match carveHeading6 /^###### \+\S\@=.*$/ contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
 
 " ---------------------------------------------------------------------------
 " Block attributes: {#id .class key=value} on their own line.
@@ -63,8 +64,8 @@ syntax match carveAttrLang  /\%({\|\s\)\@<=:\%([[:alnum:]]\{1,8}\%(-[[:alnum:]]\
 " verified against carve-rs, `>no space`, `>>x`, `>> x` and `>\tx` are all
 " paragraphs - nesting is written `> > x`, a space per marker, and a tab does
 " not separate (markup-carve/carve#525).
-syntax match carveBlockquote /^[ \t]*>\( \|$\).*$/ contains=@carveInline,@Spell
-syntax match carveCaption    /^\s*\^ \+\S\@=.*$/ contains=@carveInline,@Spell
+syntax match carveBlockquote /^[ \t]*>\( \|$\).*$/ contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
+syntax match carveCaption    /^\s*\^ \+\S\@=.*$/ contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
 
 " ---------------------------------------------------------------------------
 " Lists: -, *, +, ordered (1. 1) a. A. i. I. ...), task markers.
@@ -544,6 +545,7 @@ highlight default link carveHeading5 Title
 highlight default link carveHeading6 Title
 
 highlight default link carveComment       Comment
+highlight default link carveTrailingComment Comment
 highlight default link carveCommentInline  Comment
 highlight default link carveCommentDelim   Comment
 highlight default link carveCommentBlock   Comment
@@ -674,6 +676,12 @@ highlight default link carveCriticDelim    Delimiter
 if !hlexists('Italic')
   highlight default Italic term=italic cterm=italic gui=italic
 endif
+
+
+syntax region carveLineVerbatim matchgroup=carveDelim
+      \ start=/\%(\$\{1,2}\|!\)\?\z(`\+\)\%(`\)\@!/
+      \ end=/\%(`\)\@<!\z1\%(`\)\@!\|$/ contained keepend contains=@NoSpell
+highlight default link carveLineVerbatim String
 
 let b:current_syntax = 'carve'
 
