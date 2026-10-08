@@ -832,3 +832,39 @@ x /*a [x](b*/) c
 
 > ^ cap \\\\`x %% hidden
 %%               ^^^^^^^^^ carveLineVerbatim
+
+%% THE CONVERGED SPELLINGS (markup-carve/carve#2775). A selector needs no
+%% whitespace before its `#`, and an option none before its `@`, so a path
+%% pattern that stopped only at a SPACE would swallow the marker and hand the
+%% rest to the tag and mention rules - the shredding this region exists to
+%% prevent. The path run stops at `#`, `@`, `}` and whitespace alike, so these
+%% hold without a rule per spelling. Pinned because every selector case above
+%% is written WITH the space, so none of them could see this.
+Tight: {{ part.crv#intro }} done.
+%%          ^^^^^^^^ carveIncludePath
+%%                  ^^^^^^ carveIncludeSection
+
+%% A QUOTED path closes on its own quote, so the marker may touch it.
+Quoted: {{ "a part.crv"#intro }} done.
+%%           ^^^^^^^^^^^^ carveIncludePath
+%%                       ^^^^^^ carveIncludeSection
+
+%% An OPTION with no pad before `@`.
+Option: {{ part.crv@fmt:raw }} done.
+%%           ^^^^^^^^ carveIncludePath
+%%                   ^^^^ carveIncludeOptionName
+%%                        ^^^ carveIncludeOptionValue
+
+%% A selector and an option, the option touching the selector.
+Both: {{ part.crv #Intro@fmt:raw }} done.
+%%         ^^^^^^^^ carveIncludePath
+%%                  ^^^^^^ carveIncludeSection
+%%                        ^^^^ carveIncludeOptionName
+
+%% A selector keeps its case: ids compare case exactly (carve 0.1.8), so
+%% `#Intro` and `#intro` are different selectors and neither is normalized
+%% here. The scope is the same either way; what matters is that the region
+%% claims both rather than leaving one to the tag rule.
+Case: {{ part.crv#Intro }} and {{ part.crv#intro }}.
+%%                 ^^^^^^ carveIncludeSection
+%%                                          ^^^^^^ carveIncludeSection
