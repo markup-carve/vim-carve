@@ -194,6 +194,15 @@ x = 1
 ~~~
 %%^ carveCodeFence
 
+%% A php fence body is PHP without a `<?php` opener: php.vim alone reads it as HTML.
+```php
+echo $a;
+%%^^^^ phpDefine
+<?php
+%%^^^^^ Delimiter
+```
+%%^^^ carveCodeFence
+
 %% The info string stays the fence's even where the embedded syntax has a rule
 %% that starts at the same column.
 ```yml

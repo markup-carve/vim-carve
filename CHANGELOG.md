@@ -8,6 +8,12 @@ Releases before 0.1.6 are described on the
 
 ## [Unreleased]
 
+### Added
+
+- PHP fences are highlighted by default. A body without a `<?php` opener is
+  read as PHP, not as the HTML that Vim's own `php.vim` assumes at its top
+  level.
+
 ### Fixed
 
 - Quote text uses the normal text color by default instead of the comment color.
