@@ -1,0 +1,213 @@
+name: Release
+
+# The tag is created by THIS workflow, after the gates pass and after a human
+# approves. Vim plugin managers (vim-plug, lazy.nvim, packer) install from a
+# tag or a revision, so the tag is the first irreversible act in a release
+# here: once it is pushed, a reader can install from it. Deriving the run from
+# a tag push would run the gates after that act instead of before it.
+#
+# A release of this repository consists of the tag plus the GitHub release.
+# There is no registry to push to, so there is nothing after the tag but
+# publishing the notes the maintainer already wrote.
+#
+# The notes are published in this same run rather than by a second workflow
+# listening for the tag: a ref created with github.token does not trigger other
+# workflows, so a tag-triggered job would never fire.
+#
+# Every job declares timeout-minutes, so a hung step fails in minutes instead
+# of inheriting GitHub's 360-minute default.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, without a leading v (e.g. 0.1.7)'
+        required: true
+        type: string
+
+concurrency:
+  group: release-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: The tag is free and the changelog agrees
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: The tag does not exist yet
+        run: |
+          VER="${{ inputs.version }}"
+          if git rev-parse -q --verify "refs/tags/${VER}" >/dev/null; then
+            echo "::error::Tag ${VER} already exists. Supersede it with a new version."
+            exit 1
+          fi
+
+      # This plugin carries no version manifest: no script-local version
+      # variable, no package.json, no rockspec. The runtime files were searched
+      # for one when this lane was written and there is none, so the changelog
+      # section is the only version surface in the repository. If a version
+      # variable is ever added, gate on it here too.
+      - name: The changelog describes this version
+        run: |
+          VER="${{ inputs.version }}"
+          if ! grep -qE "^## \[?${VER//./\\.}\]?" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no section for $VER."
+            exit 1
+          fi
+
+      # A release whose changelog section is empty reads as a release with
+      # nothing in it. The heading existing is cheap; the heading having content
+      # is the thing worth checking.
+      - name: The changelog section is not empty
+        run: |
+          VER="${{ inputs.version }}"
+          body="$(awk -v v="^## \\\\[?${VER//./\\.}\\\\]?" '
+            $0 ~ v {inside=1; next}
+            inside && /^## / {exit}
+            inside {print}' CHANGELOG.md | tr -d '[:space:]')"
+          if [ -z "$body" ]; then
+            echo "::error::the CHANGELOG.md section for $VER is empty."
+            exit 1
+          fi
+
+  release-notes:
+    name: A release draft for this version exists and has notes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      # `write`, not `read`: a DRAFT release is invisible to a caller without
+      # push access, so under `contents: read` the listing comes back empty and
+      # this reports "no draft" for a draft sitting right there with notes in it.
+      contents: write
+    steps:
+      # Listed rather than addressed by tag: a draft's tag is not a git ref, so
+      # `gh release view <tag>` can match nothing, change nothing and exit 0.
+      - name: The draft exists and has notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          VER: ${{ inputs.version }}
+        run: |
+          release="$(gh api "repos/$REPO/releases" --paginate \
+            --jq "[.[] | select(.tag_name == \"$VER\")] | first")"
+          if [ -z "$release" ]; then
+            echo "::error::no release draft for $VER. Write the notes first."
+            echo "::error::if a draft DOES exist, this job could not see it - check that it still declares contents: write"
+            exit 1
+          fi
+          body="$(printf '%s' "$release" | jq -r '.body // ""' | tr -d '[:space:]')"
+          if [ -z "$body" ]; then
+            echo "::error::the release for $VER has no notes."
+            exit 1
+          fi
+          printf '%s' "$release" | jq -r '"draft=\(.draft) tag=\(.tag_name)"'
+
+  tests:
+    name: The runtime files load and highlight what they claim
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Vim and Neovim
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y vim neovim
+
+      - name: Source all Vim runtime files
+        run: |
+          for f in syntax/carve.vim ftdetect/carve.vim ftplugin/carve.vim indent/carve.vim; do
+            echo "Sourcing $f"
+            vim -u NONE -N -es -c 'syntax on' -c "source $f" -c 'q'
+          done
+
+      - name: Assert what the syntax highlights
+        run: ./tests/run-highlight-tests.sh
+
+      - name: The shared block battery agrees
+        run: ./tests/run-block-battery.sh
+
+      - name: The Lua modules load
+        run: |
+          nvim --headless --clean --cmd "set runtimepath^=$PWD" \
+            -c 'lua require("carve"); require("carve.lsp"); require("carve.import")' -c 'q'
+
+      - name: The language server wiring does what it claims
+        run: ./tests/run-lsp-tests.sh
+
+      - name: CarveImport converts through the CLI
+        run: ./tests/run-import-tests.sh
+
+      # The drift checks in ci.yml are deliberately not repeated here. They
+      # reach carve-grammars over the network, so a failure means the vendored
+      # copy is stale or GitHub is down - neither is a reason to refuse a tag
+      # that main has already passed CI on.
+
+  tag:
+    name: Create the tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [guard, release-notes, tests]
+    # THE APPROVAL GATE, and the only one: GitHub prompts once per gated job,
+    # so a second `environment:` would ask twice for one decision. `needs:`
+    # makes this unreachable until every gate above passes.
+    environment: release-approval
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Push the tag
+        run: |
+          VER="${{ inputs.version }}"
+          # Re-checked under the approval: main can move while a run waits for a
+          # reviewer, and the gates measured the commit that was current then.
+          if ! grep -qE "^## \[?${VER//./\\.}\]?" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md no longer has a section for $VER. main moved" \
+                 "while this run waited for approval. Re-run the workflow."
+            exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/${VER}" >/dev/null; then
+            echo "::error::Tag ${VER} appeared while this run waited. Stopping."
+            exit 1
+          fi
+          git tag "${VER}" "$GITHUB_SHA"
+          git push origin "refs/tags/${VER}"
+          echo "tagged ${VER} at $GITHUB_SHA"
+
+  publish:
+    name: Publish the release notes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [tag]
+    # No `environment:` here: the decision was spent on the tag, and
+    # `needs: [tag]` already makes this unreachable without it.
+    permissions:
+      contents: write
+    steps:
+      - name: Un-draft the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          VER: ${{ inputs.version }}
+        run: |
+          id="$(gh api "repos/$REPO/releases" --paginate \
+            --jq "[.[] | select(.tag_name == \"$VER\" and .draft)] | first | .id // empty")"
+          if [ -z "$id" ]; then
+            echo "No draft release for $VER; nothing to publish."
+            exit 0
+          fi
+          # `tag_name` goes with every PATCH of a release: omit it on a draft and
+          # GitHub replaces the tag with a generated `untagged-*` placeholder.
+          # `-F` for draft, so it is sent as a boolean - the string "false" is
+          # truthy and publishes anyway.
+          gh api "repos/$REPO/releases/$id" -X PATCH \
+            -f tag_name="$VER" -F draft=false --jq '"published \(.tag_name)"'
+          gh api "repos/$REPO/releases/$id" --jq '"draft=\(.draft) tag=\(.tag_name)"'
