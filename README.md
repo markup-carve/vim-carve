@@ -267,7 +267,7 @@ default is short:
 
 ```vim
 let g:carve_fenced_languages = ['bash=sh', 'diff', 'javascript',
-      \ 'js=javascript', 'json', 'py=python', 'python', 'sh',
+      \ 'js=javascript', 'json', 'php', 'py=python', 'python', 'sh',
       \ 'ts=typescript', 'typescript', 'yaml', 'yml=yaml']
 " add more, or [] to embed nothing
 ```

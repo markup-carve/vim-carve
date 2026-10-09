@@ -449,9 +449,12 @@ syntax region carveCodeBlock
 " nothing. Every entry costs a syntax file load per buffer, hence a short
 " default.
 let s:fenced_default = [
-      \ 'bash=sh', 'diff', 'javascript', 'js=javascript', 'json',
+      \ 'bash=sh', 'diff', 'javascript', 'js=javascript', 'json', 'php',
       \ 'py=python', 'python', 'sh', 'ts=typescript', 'typescript', 'yaml',
       \ 'yml=yaml']
+" php.vim's top level is HTML and its code lives in a `<?php` region, so a fence
+" body without the opener would read as HTML; its own top cluster takes the code.
+let s:fenced_extra = {'php': ',@phpClTop'}
 let s:fenced_included = {}
 for s:entry in get(g:, 'carve_fenced_languages', s:fenced_default)
   let s:tag = matchstr(s:entry, '^[^=]*')
@@ -488,7 +491,8 @@ for s:entry in get(g:, 'carve_fenced_languages', s:fenced_default)
           \ . ' matchgroup=carveCodeFence'
           \ . ' start=/^\s*\z(' . s:run . '\)\ze\s*' . s:pat . '\%(\s\|$\)/'
           \ . ' end=/^\s*\z1' . s:more . '\s*$/ keepend'
-          \ . ' contains=carveCodeInfo,@carveFenced_' . s:lang . ',@NoSpell'
+          \ . ' contains=carveCodeInfo,@carveFenced_' . s:lang
+          \ . get(s:fenced_extra, s:lang, '') . ',@NoSpell'
   endfor
 endfor
 unlet! s:entry s:tag s:lang s:pat s:run s:more s:isk
