@@ -556,7 +556,7 @@ highlight default link carveFrontmatter      PreProc
 highlight default link carveFrontmatterFence Delimiter
 
 highlight default link carveRule           Statement
-highlight default link carveBlockquote     Comment
+highlight default link carveBlockquote     Normal
 highlight default link carveCaption        Special
 
 highlight default link carveListBullet     Statement

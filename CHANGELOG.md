@@ -8,6 +8,10 @@ Releases before 0.1.6 are described on the
 
 ## [Unreleased]
 
+### Fixed
+
+- Quote text uses the normal text color by default instead of the comment color.
+
 ## [0.1.6] - 2026-10-08
 
 ### Fixed
