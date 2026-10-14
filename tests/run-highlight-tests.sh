@@ -96,12 +96,29 @@ fi
   -c 'set filetype=carve | set filetype=text' \
   -c "call append(0, '') | doautocmd TextChanged" \
   -c "redir! > $work/out" \
-  -c 'echo synIDattr(synID(4, 1, 1), "name")' \
+  -c 'echo synIDattr(synID(4, 1, 0), "name")' \
   -c 'redir END' \
   -c 'qa!' </dev/null >/dev/null 2>&1
 actual="$(tr -d '\r\n' < "$work/out")"
 if [[ "$actual" == carve* ]]; then
   fails+=("caret after filetype switch: unexpected Carve group $actual")
+else
+  pass=$((pass + 1))
+fi
+
+# Reloading the syntax must rebuild its line-specific opening caret match.
+"$vim_bin" -u NONE -N -es \
+  -c 'syntax on' \
+  -c "set runtimepath^=$root" \
+  -c "edit $work/case.crv" \
+  -c 'set filetype=carve | edit' \
+  -c "redir! > $work/out" \
+  -c 'echo synIDattr(synID(3, 1, 1), "name")' \
+  -c 'redir END' \
+  -c 'qa!' </dev/null >/dev/null 2>&1
+actual="$(tr -d '\r\n' < "$work/out")"
+if [[ -n "$actual" ]]; then
+  fails+=("caret after syntax reload: expected no group, got $actual")
 else
   pass=$((pass + 1))
 fi

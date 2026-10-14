@@ -714,6 +714,7 @@ if &filetype ==# 'carve'
     autocmd! * <buffer>
     autocmd TextChanged,TextChangedI,InsertLeave <buffer> call <SID>refresh_opening_caret()
   augroup END
+  unlet! b:carve_opening_caret_line
   call s:refresh_opening_caret()
 endif
 
