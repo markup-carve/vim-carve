@@ -8,15 +8,17 @@ Releases before 0.1.6 are described on the
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-10-14
+
+### Fixed
+
+- Quote text uses the normal text color by default instead of the comment color (#61).
+
 ### Added
 
 - PHP fences are highlighted by default. A body without a `<?php` opener is
   read as PHP, not as the HTML that Vim's own `php.vim` assumes at its top
-  level.
-
-### Fixed
-
-- Quote text uses the normal text color by default instead of the comment color.
+  level (#63).
 
 ## [0.1.6] - 2026-10-08
 
