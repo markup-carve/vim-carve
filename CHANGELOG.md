@@ -8,6 +8,13 @@ Releases before 0.1.6 are described on the
 
 ## [Unreleased]
 
+### Fixed
+
+- `:TSInstall carve` builds tree-sitter-carve `main` (31cabdd) instead of the
+  0.1.6 tag, which is 85 commits behind and misses the parser hang fix and the
+  near-linear inline scan. The bundled queries move with the pin, so they
+  compile against the grammar that gets installed.
+
 ## [0.1.7] - 2026-10-14
 
 ### Fixed

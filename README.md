@@ -246,7 +246,8 @@ still match tree-sitter-carve at the pinned commit, and
 `tests/run-treesitter-captures.sh` reads what those queries actually capture
 from that grammar - the only check here that can notice a pin left behind, since
 a stale one matches its own queries perfectly. `tests/run-nvim-injection-tests.sh`
-runs `injections.scm` inside Neovim (`NVIM_BIN` picks the binary).
+runs `injections.scm` inside Neovim (`NVIM_BIN` picks the binary) and
+compiles every bundled query against the pinned parser.
 `tests/run-install-info-build.sh`
 compiles the grammar from exactly the `install_info.files` list that
 `:TSInstall carve` uses and loads the result, so a missing source file fails CI.
@@ -278,7 +279,7 @@ let g:carve_fenced_languages = ['bash=sh', 'diff', 'javascript',
 |---------------------|---------------------------------------------|------------------------------------------------------|
 | `parser_path`       | `nil`                                       | Register a pre-compiled parser directly.              |
 | `install_url`       | tree-sitter-carve repo                      | URL for `:TSInstall carve`.                           |
-| `install_revision`  | `9323ff5f9d87b20372fc3f4f9052fed67dd176ff`  | Revision to install (the 0.1.6 tag; pinned to the bundled queries).  |
+| `install_revision`  | `31cabddde6d758793e4bfcb2361591c26beefc41`  | Revision to install (tree-sitter-carve `main` after 0.1.8; pinned to the bundled queries). |
 | `register_filetype` | `true`                                      | Map `carve` filetype to `carve` lang.                 |
 
 ## License
