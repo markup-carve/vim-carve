@@ -13,7 +13,8 @@ Releases before 0.1.6 are described on the
 ### Fixed
 
 - Quote text uses the normal text color by default instead of the comment color (#61).
-- A `^ text` line before the first block remains prose (#66).
+- A `^ text` line before the first block remains prose, including after
+  leading blank lines (#66, #67).
 
 ### Added
 
