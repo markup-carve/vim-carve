@@ -150,6 +150,35 @@ run_case 'a crv fence does not crash, and injects carve where that is safe' \
 run_case 'a raw carve block does not crash' \
   $'``` =carve\n*bold*\n```\n' 1 "$want_self"
 
+# Every bundled query must compile against the pinned parser. A query naming a
+# node type the grammar no longer has (or does not have yet) fails here with
+# "Invalid node type", which is what a pin bumped without its queries does.
+cat > "$work/queries.lua" <<'LUA'
+local errors = {}
+for _, name in ipairs({ 'highlights', 'injections', 'folds', 'indents', 'locals', 'textobjects', 'context' }) do
+  local files = vim.api.nvim_get_runtime_file('queries/carve/' .. name .. '.scm', true)
+  local text = table.concat(vim.fn.readfile(files[#files]), '\n')
+  local ok, err = pcall(vim.treesitter.query.parse, 'carve', text)
+  if not ok then
+    table.insert(errors, name .. ': ' .. tostring(err))
+  end
+end
+local f = assert(io.open(vim.env.PROBE_OUT, 'w'))
+f:write(table.concat(errors, '\n'))
+f:close()
+LUA
+printf 'x\n' > "$work/case.crv"
+rm -f "$work/out"
+PROBE_OUT="$work/out" timeout 60 "$nvim_bin" --clean -u "$work/init.lua" --headless \
+  "$work/case.crv" -c "luafile $work/queries.lua" -c 'qa!' > "$work/log" 2>&1 || true
+if [[ ! -f "$work/out" ]]; then
+  fails+=("query compile probe did not run"$'\n'"$(cat "$work/log")")
+elif [[ -s "$work/out" ]]; then
+  fails+=("bundled queries do not compile against the pinned parser:"$'\n'"$(cat "$work/out")")
+else
+  pass=$((pass + 1))
+fi
+
 if ((${#fails[@]})); then
   printf 'nvim injection failures (%s):\n' "$version"
   printf '  %s\n' "${fails[@]}"

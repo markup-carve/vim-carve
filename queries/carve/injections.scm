@@ -1,4 +1,15 @@
-((comment) @injection.content
+([
+  (comment_line)
+  (trailing_comment)
+] @injection.content
+  (#set! injection.language "comment"))
+
+([
+  (fenced_comment_block
+    (content) @injection.content)
+  (braced_comment
+    (content) @injection.content)
+]
   (#set! injection.language "comment"))
 
 (math
@@ -26,3 +37,9 @@
   (language) @injection.language
   (frontmatter_content) @injection.content
   (#carve-injectable? @injection.language))
+
+; Plain `---` frontmatter is YAML.
+(frontmatter
+  !language
+  (frontmatter_content) @injection.content
+  (#set! injection.language "yaml"))

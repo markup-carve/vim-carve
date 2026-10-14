@@ -12,6 +12,10 @@ Releases before 0.1.6 are described on the
 
 ### Fixed
 
+- `:TSInstall carve` builds the tree-sitter-carve 0.1.9 tag instead of 0.1.6,
+  which misses the parser hang fix and the near-linear inline scan. The bundled
+  queries are re-copied to match, so they compile against the installed grammar
+  (#69).
 - Quote text uses the normal text color by default instead of the comment color (#61).
 - A `^ text` line before the first block remains prose, including after
   leading blank lines (#66, #67).
