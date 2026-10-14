@@ -288,12 +288,14 @@ let s:opaque = '\%(!\=' . s:link_label . '(' . s:link_dest . s:link_title . ')'
 let s:wordch = '[[:alnum:]\u00aa\u00b5\u00ba\u00c0-\u00d6\u00d8-\u00f6\u00f8-\u02ff\u0370-\u03ff\u0400-\u052f\u0590-\u06ff\u0900-\u0dff\u0e00-\u0eff\u1100-\u11ff\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]'
 function! s:emphasis(group, delim, extra_open, contains) abort
   let l:d = a:delim
+  " `\%#=2` keeps these on the NFA engine: the backtracking fallback Vim uses on a
+  " long line rejects the wide ranges in s:wordch (E945).
   " The cheap lookahead rejects most unclosed openers before the one that has
   " to step over link destinations and autolinks.
-  let l:open = '\%(\w\|' . l:d . '\)\@1<!' . l:d . '\%(\s\|' . l:d . a:extra_open . '\)\@!'
+  let l:open = '\%#=2\%(\w\|' . l:d . '\)\@1<!' . l:d . '\%(\s\|' . l:d . a:extra_open . '\)\@!'
         \ . '\%(\%([^\n]*\n\)\=[^\n]\{-}\S' . l:d . s:wordch . '\@!\)\@='
         \ . '\%(\%([^\n]*\n\)\=\%(\%(' . s:opaque . '\|[^\n]\)\@>\)\{-}\S' . l:d . s:wordch . '\@!\)\@='
-  let l:close = '\S\@1<=' . l:d . s:wordch . '\@!'
+  let l:close = '\%#=2\S\@1<=' . l:d . s:wordch . '\@!'
   execute 'syntax region ' . a:group . ' matchgroup=carveDelim start=`' . l:open . '` end=`' . l:close . '`'
         \ . ' skip=`' . s:opaque . '` keepend contains=' . a:contains . ' concealends'
 endfunction
