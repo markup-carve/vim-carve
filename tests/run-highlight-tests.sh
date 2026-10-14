@@ -47,20 +47,39 @@ while IFS=$'\t' read -r expected line; do
   fi
 done < "$here/cases.txt"
 
-# An opening caret line is still prose when blank lines precede it.
-printf '\n^ cap\nafter\n' > "$work/case.crv"
+# An opening caret line is still prose when several blank lines precede it.
+printf '\n\n^ cap\nafter\n' > "$work/case.crv"
 "$vim_bin" -u NONE -N -es \
   -c 'syntax on' \
   -c "set runtimepath^=$root" \
   -c "edit $work/case.crv" \
   -c 'set filetype=carve' \
   -c "redir! > $work/out" \
-  -c 'echo synIDattr(synID(2, 1, 1), "name")' \
+  -c 'echo synIDattr(synID(3, 1, 1), "name")' \
   -c 'redir END' \
   -c 'qa!' </dev/null >/dev/null 2>&1
 actual="$(tr -d '\r\n' < "$work/out")"
 if [[ -n "$actual" ]]; then
   fails+=("caret after leading blank line: expected no group, got $actual")
+else
+  pass=$((pass + 1))
+fi
+
+# The line number changes when a blank line is inserted in the open buffer.
+"$vim_bin" -u NONE -N -es \
+  -c 'syntax on' \
+  -c "set runtimepath^=$root" \
+  -c "edit $work/case.crv" \
+  -c 'set filetype=carve' \
+  -c "call append(0, '')" \
+  -c 'doautocmd TextChanged' \
+  -c "redir! > $work/out" \
+  -c 'echo synIDattr(synID(4, 1, 1), "name")' \
+  -c 'redir END' \
+  -c 'qa!' </dev/null >/dev/null 2>&1
+actual="$(tr -d '\r\n' < "$work/out")"
+if [[ -n "$actual" ]]; then
+  fails+=("caret after an inserted blank line: expected no group, got $actual")
 else
   pass=$((pass + 1))
 fi
