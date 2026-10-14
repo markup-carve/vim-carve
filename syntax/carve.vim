@@ -690,7 +690,9 @@ highlight default link carveLineVerbatim String
 " The syntax engine does not carry a start-of-buffer region across several
 " blank lines. Match the first content line by number and refresh after edits.
 function! s:refresh_opening_caret() abort
-  if &filetype !=# 'carve'
+  if index(split(&filetype, '\.'), 'carve') < 0 || !exists('g:syntax_on')
+        \ || (exists('b:carve_opening_caret_line')
+        \     && empty(get(b:, 'current_syntax', '')))
     return
   endif
   let l:line = nextnonblank(1)
@@ -709,7 +711,7 @@ function! s:refresh_opening_caret() abort
   endif
 endfunction
 
-if &filetype ==# 'carve'
+if index(split(&filetype, '\.'), 'carve') >= 0
   augroup carve_opening_caret
     autocmd! * <buffer>
     autocmd TextChanged,TextChangedI,InsertLeave <buffer> call <SID>refresh_opening_caret()
