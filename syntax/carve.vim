@@ -65,7 +65,10 @@ syntax match carveAttrLang  /\%({\|\s\)\@<=:\%([[:alnum:]]\{1,8}\%(-[[:alnum:]]\
 " paragraphs - nesting is written `> > x`, a space per marker, and a tab does
 " not separate (markup-carve/carve#525).
 syntax match carveBlockquote /^[ \t]*>\( \|$\).*$/ contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
-syntax match carveCaption    /\%(\%^\_s*\)\@<!^[ \t]*\^ \+\S\@=.*$/ contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
+syntax match carveCaption    /^[ \t]*\^ \+\S\@=.*$/ contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
+" A caret before the first block is prose. Start the transparent region at the
+" buffer origin so it also covers leading blank lines.
+syntax region carveOpeningCaret start=/\%^\_s*[ \t]*\^ \+\S/ end=/$/ transparent contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
 
 " ---------------------------------------------------------------------------
 " Lists: -, *, +, ordered (1. 1) a. A. i. I. ...), task markers.
