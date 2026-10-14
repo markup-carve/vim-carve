@@ -15,7 +15,7 @@ carveListBullet	- item
 carveListNumber	1. item
 carveListNumber	. bare
 carveDefTerm	:: term
-carveCaption	^ cap
+-	^ cap
 # Only spaces and tabs separate a marker from its content, so a heading whose
 # content starts with a no-break space is still a heading.
 carveHeading1	# <NBSP>Title
