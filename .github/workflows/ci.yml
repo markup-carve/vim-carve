@@ -49,6 +49,9 @@ jobs:
       - name: The shared block battery agrees
         run: ./tests/run-block-battery.sh
 
+      - name: Section folds and list indent
+        run: ./tests/run-fold-indent-tests.sh
+
       # The Lua half of this plugin had no check at all: lua/carve/init.lua and
       # lua/carve/lsp.lua could fail to parse and every step above would still
       # pass, because Vim never sources *.lua.
@@ -87,7 +90,7 @@ jobs:
       # first one.
       - name: The syntax file actually highlights
         run: |
-          for f in tests/highlight.crv tests/frontmatter.crv; do
+          for f in tests/highlight.crv tests/frontmatter.crv tests/frontmatter-unclosed.crv; do
             echo "Asserting $f"
             vim -Nu NONE --cmd "set rtp^=$PWD" -es -S tests/run-highlight.vim "$f"
           done

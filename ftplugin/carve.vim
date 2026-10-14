@@ -30,12 +30,28 @@ endif
 " with `let g:carve_folding = 1`.
 if get(g:, 'carve_folding', 0)
   setlocal foldmethod=expr
-  setlocal foldexpr=getline(v:lnum)=~'^#\\+\\s'?'>'.matchend(getline(v:lnum),'^#\\+'):'='
+  setlocal foldexpr=CarveFoldLevel(v:lnum)
 endif
 
 let b:undo_ftplugin = 'setlocal commentstring< comments< iskeyword<'
       \ . ' linebreak< breakindent< conceallevel< concealcursor<'
       \ . ' foldmethod< foldexpr<'
+
+" A heading is one to six `#` and a space. With syntax on, a `#` line inside a
+" code block or a comment block is not a heading, so it opens no fold.
+if !exists('*CarveFoldLevel')
+  function! CarveFoldLevel(lnum) abort
+    let l:hashes = matchstr(getline(a:lnum), '^#\{1,6}\ze \+\S')
+    if l:hashes ==# ''
+      return '='
+    endif
+    if exists('g:syntax_on') && get(b:, 'current_syntax', '') ==# 'carve'
+          \ && synIDattr(synID(a:lnum, 1, 1), 'name') !~# '^carveHeading'
+      return '='
+    endif
+    return '>' . len(l:hashes)
+  endfunction
+endif
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
