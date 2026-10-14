@@ -43,6 +43,17 @@ upgrade for Neovim users who install the parser.
   deep, a label holding a code span with `]`, and an email autolink with a
   non-ASCII character are not recognized, so a delimiter inside one can still
   close the run.
+- A bare delimiter needs a word boundary outside it, so `snake_case_name`,
+  `a/b/c` and `2*3*4` stay literal. A run, and a single-backtick code span,
+  may cross one line break.
+- Block context follows the engine where a line-based highlighter can see it:
+  a list marker or `^ ` line after a paragraph stays prose, a caption is
+  colored only below a block that takes one (table, code block, quote,
+  image or display math line, figure group), and headings, list markers,
+  definitions, tables, container fences and fenced code are recognized inside
+  `> ` quotes. Frontmatter needs its closing `---`. Not covered: a caption
+  below a `::: >` fenced quote, a list after an indented paragraph line, and
+  a caption separated from its block by more than one blank line.
 - `commentstring=%% %s` and a minimal list/quote indent.
 - Optional concealing (`let g:carve_conceal = 1`) and section folding
   (`let g:carve_folding = 1`).

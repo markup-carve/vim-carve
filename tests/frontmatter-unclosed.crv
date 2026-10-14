@@ -1,0 +1,7 @@
+---
+%%^^^ carveRule
+title: *b*
+%%        ^ carveBold
+
+%% Without a closing line the leading dashes are a thematic break and the
+%% rest of the buffer stays Carve, the way the engine reads it.

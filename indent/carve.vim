@@ -33,10 +33,12 @@ function! GetCarveIndent() abort
   endif
 
   " Continue inside a list item: align the body under the marker text.
-  let m = matchlist(prev, '^\(\s*\)\%(\([-*+]\)\|\(\d\+[.)]\)\)\s\+')
-  if !empty(m)
+  " Markers: `-`, `*`, `1.`, `1)`, `a.`, `iv)`, a bare `.`, each with an
+  " optional glued attribute block (`-{.c} item`). `+` is not a bullet.
+  let marker = matchstr(prev, '^\s*\%([-*]\|\%(\d\+\|\a\|[ivxlcdmIVXLCDM]\+\)[.)]\|\.\)\%({[^}]*}\)\= \+\ze\S')
+  if marker !=# ''
     " Width of the leading whitespace plus the marker plus following spaces.
-    return strdisplaywidth(matchstr(prev, '^\(\s*\)\%(\([-*+]\)\|\(\d\+[.)]\)\)\s\+'))
+    return strdisplaywidth(marker)
   endif
 
   return prev_indent

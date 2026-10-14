@@ -42,7 +42,6 @@ A colon-leading value [v]{key=:fr} is a value.
 ![one](a.png)
 ^ (a) One
 :::
-%%^^^ carveFigureGroupFence
 ^ Figure #: Group caption
 %%^^^^^^^^^^^^^^^^^^^^^^^^^ carveCaption
 
@@ -695,14 +694,15 @@ x /*a [x](b*/) c
 # a `x %% b` c %% hidden
 %%      ^^ carveLineVerbatim
 %%               ^^^^^^^^^ carveTrailingComment
-# a `x`	%% hidden
-%%        ^^^^^^^^^ carveTrailingComment
+# a `x`	%% shown
+%%        ^^^^^^^^ carveHeading1
 ![alt](x.png)
 ^ cap `x %% b` c %% hidden
 %%        ^^ carveLineVerbatim
 %%                 ^^^^^^^^^ carveTrailingComment
-^ cap `x`	%% hidden
-%%          ^^^^^^^^^ carveTrailingComment
+![alt](x.png)
+^ cap `x`	%% shown
+%%          ^^^^^^^^ carveCaption
 
 # a `x %% b
 %%       ^^ carveLineVerbatim
@@ -719,17 +719,21 @@ x /*a [x](b*/) c
 %%        ^^ carveLineVerbatim
 %%                ^^^^^^^^^ carveTrailingComment
 
+![alt](x.png)
 ^ cap `x %% b
 %%         ^^ carveLineVerbatim
 
+![alt](x.png)
 ^ cap ``x %% b`` c %% hidden
 %%          ^^ carveLineVerbatim
 %%                   ^^^^^^^^^ carveTrailingComment
 
+![alt](x.png)
 ^ cap !`x %% b` c %% hidden
 %%          ^^ carveLineVerbatim
 %%                  ^^^^^^^^^ carveTrailingComment
 
+![alt](x.png)
 ^ cap $`x %% b` c %% hidden
 %%          ^^ carveLineVerbatim
 %%                  ^^^^^^^^^ carveTrailingComment
@@ -761,30 +765,38 @@ x /*a [x](b*/) c
 # a \\\\`x %% hidden
 %%           ^^^^^^^^^ carveLineVerbatim
 
+![alt](x.png)
 ^ cap `x %% b
 %%         ^^ carveLineVerbatim
 
+![alt](x.png)
 ^ cap ``x %% b`` c %% hidden
 %%          ^^ carveLineVerbatim
 %%                   ^^^^^^^^^ carveTrailingComment
 
+![alt](x.png)
 ^ cap !`x %% b` c %% hidden
 %%          ^^ carveLineVerbatim
 %%                  ^^^^^^^^^ carveTrailingComment
 
+![alt](x.png)
 ^ cap $`x %% b` c %% hidden
 %%          ^^ carveLineVerbatim
 %%                  ^^^^^^^^^ carveTrailingComment
 
+![alt](x.png)
 ^ cap \`x %% hidden
 %%          ^^^^^^^^^ carveTrailingComment
 
+![alt](x.png)
 ^ cap \\`x %% hidden
 %%           ^^^^^^^^^ carveLineVerbatim
 
+![alt](x.png)
 ^ cap \\\`x %% hidden
 %%            ^^^^^^^^^ carveTrailingComment
 
+![alt](x.png)
 ^ cap \\\\`x %% hidden
 %%             ^^^^^^^^^ carveLineVerbatim
 
@@ -877,3 +889,149 @@ Both: {{ part.crv #Intro@fmt:raw }} done.
 Case: {{ part.crv#Intro }} and {{ part.crv#intro }}.
 %%                 ^^^^^^ carveIncludeSection
 %%                                          ^^^^^^ carveIncludeSection
+
+%% EDITOR AUDIT (2026-10): paragraph context, captions, flanking, quotes.
+
+%% A list marker or a caption does not interrupt a paragraph.
+para
+- not a list
+^ not a caption
+%%^^^^^ (none)
+
+para
+- not a list
+%%^ (none)
+
+para
+1. not a list
+%%^^ (none)
+
+%% A marker after a lazy continuation line opens the next item.
+- a
+lazy
+- b
+%%^ carveListBullet
+
+%% After a blank line the marker opens a list.
+para
+
+- a
+%%^ carveListBullet
+
+%% A marker deeper in a list item opens a nested list.
+- a
+  more
+  - b
+%%  ^ carveListBullet
+
+%% A heading and a definition indented into a list item are blocks.
+- a
+
+  # Inner
+%%  ^^^^^^^ carveListHeading
+
+- a
+
+  :: term
+%%  ^^^^^^^ carveListDefTerm
+
+%% A caption takes a host block: not a heading, a paragraph or nothing.
+# H
+^ literal
+%%^^^^^^^^^ (none)
+
+para
+
+^ literal
+%%^^^^^^^^^ (none)
+
+| t |
+
+^ cap
+%%^^^^^ carveCaption
+
+```
+x
+```
+^ cap
+%%^^^^^ carveCaption
+
+> q
+^ cap
+%%^^^^^ carveCaption
+
+%% A bare delimiter needs a word boundary on the outside.
+snake_case_name a/b/c 2*3*4 key=value=x a~b~c http://x/a/b
+%%     ^^^^^^ (none)
+%%                 ^^^ (none)
+%%                       ^^^ (none)
+%%                               ^^^^^^^ (none)
+%%                                         ^^^ (none)
+%%                                                   ^^^^^^^ (none)
+
+a ==x== b and *real* bold
+%%  ^^^^^ (none)
+%%               ^^^^ carveBold
+
+%% A run may cross one line break, and a code span too; an opener with no
+%% closer on its line or the next opens nothing.
+an /italic
+run/ and `code
+%%^^^ carveItalic
+%%          ^^^^ (none)
+
+a `code
+span` b
+%%^^^^ carveCode
+
+%% Arrows: `=>` is literal, `-->` and `==>` convert, upper-case (C) does not.
+a --> b ==> c => d (C) (c)
+%%  ^^^ carveTypography
+%%        ^^^ carveTypography
+%%              ^^ (none)
+%%                   ^^^ (none)
+%%                       ^^^ carveTypography
+
+%% `%%` opens a comment after a space only.
+50%% off, a	%% tab, and %% hidden
+%%^^^^^^^^ (none)
+%%            ^^^^^^ (none)
+%%                        ^^^^^^^^^ carveComment
+
+%% Definitions keep their line from the link rule.
+[ref]: http://x
+%%^^^^^ carveRefLabel
+
+[^f]: note
+%%    ^^^^^^ carveFootDef
+
+%% A table row ends in a pipe.
+| a | b
+%%^^^^^^^ (none)
+
+%% Blocks inside a quote.
+> # Quoted
+%%  ^^^^^^^^ carveQuotedHeading
+
+> - item
+%%  ^ carveQuotedListMarker
+
+> :: term
+%%  ^^^^^^^ carveQuotedDefTerm
+
+> | x |
+%%   ^^^ carveQuotedTable
+
+> ::: note
+%%  ^^^ carveQuotedDivFence
+%%      ^^^^ carveAdmonition
+
+%% A quoted fence keeps its body verbatim and ends with its quote.
+> ```
+> *x*
+%%  ^^^ carveQuotedCodeBlock
+
+> ```
+> ```
+> after *b*
+%%         ^ carveBold

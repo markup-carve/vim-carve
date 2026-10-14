@@ -158,6 +158,26 @@ else
   pass=$((pass + 1))
 fi
 
+# A long line of unclosed openers makes the NFA engine give up; the emphasis
+# patterns must not fall back to the backtracking engine, which rejects their
+# wide Unicode classes (E945, E339).
+printf '*a %.0s' $(seq 1 400) > "$work/case.crv"
+printf '\n' >> "$work/case.crv"
+"$vim_bin" -u NONE -N -es \
+  -c 'syntax on' \
+  -c "set runtimepath^=$root" \
+  -c "edit $work/case.crv" \
+  -c 'set filetype=carve' \
+  -c "redir! > $work/out" \
+  -c 'echo synIDattr(synID(1, 1100, 1), "name")' \
+  -c 'redir END' \
+  -c 'qa!' </dev/null >/dev/null 2>&1 || true
+if grep -q 'E[0-9]\+:' "$work/out"; then
+  fails+=("long unclosed emphasis line: $(grep -o 'E[0-9]\+:.*' "$work/out" | head -n1)")
+else
+  pass=$((pass + 1))
+fi
+
 if ((${#fails[@]})); then
   printf 'Highlight assertion failures:\n'
   printf '  %s\n' "${fails[@]}"
