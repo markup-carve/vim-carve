@@ -690,19 +690,32 @@ highlight default link carveLineVerbatim String
 " The syntax engine does not carry a start-of-buffer region across several
 " blank lines. Match the first content line by number and refresh after edits.
 function! s:refresh_opening_caret() abort
-  silent! syntax clear carveOpeningCaret
+  if &filetype !=# 'carve'
+    return
+  endif
   let l:line = nextnonblank(1)
-  if l:line > 0 && getline(l:line) =~# '^[ \t]*\^ \+\S'
-    execute 'syntax match carveOpeningCaret /\%' . l:line
+  let l:caret_line = l:line > 0 && getline(l:line) =~# '^[ \t]*\^ \+\S' ? l:line : 0
+  let l:old_line = get(b:, 'carve_opening_caret_line', -1)
+  if l:old_line == l:caret_line
+    return
+  endif
+  if l:old_line > 0
+    syntax clear carveOpeningCaret
+  endif
+  let b:carve_opening_caret_line = l:caret_line
+  if l:caret_line > 0
+    execute 'syntax match carveOpeningCaret /\%' . l:caret_line
           \ . 'l[ \t]*\^ \+\S\@=.*$/ transparent contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell'
   endif
 endfunction
 
-augroup carve_opening_caret
-  autocmd! * <buffer>
-  autocmd TextChanged,TextChangedI,InsertLeave <buffer> call <SID>refresh_opening_caret()
-augroup END
-call s:refresh_opening_caret()
+if &filetype ==# 'carve'
+  augroup carve_opening_caret
+    autocmd! * <buffer>
+    autocmd TextChanged,TextChangedI,InsertLeave <buffer> call <SID>refresh_opening_caret()
+  augroup END
+  call s:refresh_opening_caret()
+endif
 
 let b:current_syntax = 'carve'
 
