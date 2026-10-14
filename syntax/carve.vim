@@ -65,7 +65,7 @@ syntax match carveAttrLang  /\%({\|\s\)\@<=:\%([[:alnum:]]\{1,8}\%(-[[:alnum:]]\
 " paragraphs - nesting is written `> > x`, a space per marker, and a tab does
 " not separate (markup-carve/carve#525).
 syntax match carveBlockquote /^[ \t]*>\( \|$\).*$/ contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
-syntax match carveCaption    /\%>1l\%(^[ \t]*\n\)\@<!^[ \t]*\^ \+\S\@=.*$/ contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
+syntax match carveCaption    /\%(\%^\_s*\)\@<!^[ \t]*\^ \+\S\@=.*$/ contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
 
 " ---------------------------------------------------------------------------
 " Lists: -, *, +, ordered (1. 1) a. A. i. I. ...), task markers.
