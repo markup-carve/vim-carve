@@ -66,9 +66,6 @@ syntax match carveAttrLang  /\%({\|\s\)\@<=:\%([[:alnum:]]\{1,8}\%(-[[:alnum:]]\
 " not separate (markup-carve/carve#525).
 syntax match carveBlockquote /^[ \t]*>\( \|$\).*$/ contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
 syntax match carveCaption    /^[ \t]*\^ \+\S\@=.*$/ contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
-" A caret before the first block is prose. Start the transparent region at the
-" buffer origin so it also covers leading blank lines.
-syntax region carveOpeningCaret start=/\%^\_s*[ \t]*\^ \+\S/ end=/$/ transparent contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell
 
 " ---------------------------------------------------------------------------
 " Lists: -, *, +, ordered (1. 1) a. A. i. I. ...), task markers.
@@ -689,6 +686,39 @@ syntax region carveLineVerbatim matchgroup=carveDelim
       \ start=/\%(\$\{1,2}\|!\)\?\z(`\+\)\%(`\)\@!/
       \ end=/\%(`\)\@<!\z1\%(`\)\@!\|$/ contained keepend contains=@NoSpell
 highlight default link carveLineVerbatim String
+
+" The syntax engine does not carry a start-of-buffer region across several
+" blank lines. Match the first content line by number and refresh after edits.
+function! s:refresh_opening_caret() abort
+  if index(split(&syntax, '\.'), 'carve') < 0 || !exists('g:syntax_on')
+        \ || (exists('b:carve_opening_caret_line')
+        \     && empty(get(b:, 'current_syntax', '')))
+    return
+  endif
+  let l:line = nextnonblank(1)
+  let l:caret_line = l:line > 0 && getline(l:line) =~# '^[ \t]*\^ \+\S' ? l:line : 0
+  let l:old_line = get(b:, 'carve_opening_caret_line', -1)
+  if l:old_line == l:caret_line
+    return
+  endif
+  if l:old_line > 0
+    syntax clear carveOpeningCaret
+  endif
+  let b:carve_opening_caret_line = l:caret_line
+  if l:caret_line > 0
+    execute 'syntax match carveOpeningCaret /\%' . l:caret_line
+          \ . 'l[ \t]*\^ \+\S\@=.*$/ transparent contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell'
+  endif
+endfunction
+
+if index(split(&syntax, '\.'), 'carve') >= 0
+  augroup carve_opening_caret
+    autocmd! * <buffer>
+    autocmd TextChanged,TextChangedI,InsertLeave <buffer> call <SID>refresh_opening_caret()
+  augroup END
+  unlet! b:carve_opening_caret_line
+  call s:refresh_opening_caret()
+endif
 
 let b:current_syntax = 'carve'
 

@@ -47,20 +47,113 @@ while IFS=$'\t' read -r expected line; do
   fi
 done < "$here/cases.txt"
 
-# An opening caret line is still prose when blank lines precede it.
-printf '\n^ cap\nafter\n' > "$work/case.crv"
+# An opening caret line is prose after one or several leading blank lines.
+for blanks in 1 2; do
+  printf '%*s' "$blanks" '' | tr ' ' '\n' > "$work/case.crv"
+  printf '^ cap\nafter\n' >> "$work/case.crv"
+  line=$((blanks + 1))
+  "$vim_bin" -u NONE -N -es \
+    -c 'syntax on' \
+    -c "set runtimepath^=$root" \
+    -c "edit $work/case.crv" \
+    -c 'set filetype=carve' \
+    -c "redir! > $work/out" \
+    -c "echo synIDattr(synID($line, 1, 1), 'name')" \
+    -c 'redir END' \
+    -c 'qa!' </dev/null >/dev/null 2>&1
+  actual="$(tr -d '\r\n' < "$work/out")"
+  if [[ -n "$actual" ]]; then
+    fails+=("caret after $blanks leading blank lines: expected no group, got $actual")
+  else
+    pass=$((pass + 1))
+  fi
+done
+
+# The line number changes when a blank line is inserted in the open buffer.
 "$vim_bin" -u NONE -N -es \
   -c 'syntax on' \
   -c "set runtimepath^=$root" \
   -c "edit $work/case.crv" \
   -c 'set filetype=carve' \
+  -c "call append(0, '')" \
+  -c 'doautocmd TextChanged' \
   -c "redir! > $work/out" \
-  -c 'echo synIDattr(synID(2, 1, 1), "name")' \
+  -c 'echo synIDattr(synID(4, 1, 1), "name")' \
   -c 'redir END' \
   -c 'qa!' </dev/null >/dev/null 2>&1
 actual="$(tr -d '\r\n' < "$work/out")"
 if [[ -n "$actual" ]]; then
-  fails+=("caret after leading blank line: expected no group, got $actual")
+  fails+=("caret after an inserted blank line: expected no group, got $actual")
+else
+  pass=$((pass + 1))
+fi
+
+# The Carve refresh hook must not add syntax items after a filetype switch.
+"$vim_bin" -u NONE -N -es \
+  -c 'syntax on' \
+  -c "set runtimepath^=$root" \
+  -c "edit $work/case.crv" \
+  -c 'set filetype=carve | set filetype=text' \
+  -c "call append(0, '') | doautocmd TextChanged" \
+  -c "redir! > $work/out" \
+  -c 'echo synIDattr(synID(4, 1, 0), "name")' \
+  -c 'redir END' \
+  -c 'qa!' </dev/null >/dev/null 2>&1
+actual="$(tr -d '\r\n' < "$work/out")"
+if [[ "$actual" == carve* ]]; then
+  fails+=("caret after filetype switch: unexpected Carve group $actual")
+else
+  pass=$((pass + 1))
+fi
+
+# A buffer may select Carve syntax without changing its filetype.
+"$vim_bin" -u NONE -N -es \
+  -c 'syntax on' \
+  -c "set runtimepath^=$root" \
+  -c "edit $work/case.crv" \
+  -c 'set filetype=text | set syntax=carve' \
+  -c "redir! > $work/out" \
+  -c 'echo synIDattr(synID(3, 1, 1), "name")' \
+  -c 'redir END' \
+  -c 'qa!' </dev/null >/dev/null 2>&1
+actual="$(tr -d '\r\n' < "$work/out")"
+if [[ -n "$actual" ]]; then
+  fails+=("caret with syntax=carve: expected no group, got $actual")
+else
+  pass=$((pass + 1))
+fi
+
+# Changing only the syntax must stop the Carve refresh hook.
+"$vim_bin" -u NONE -N -es \
+  -c 'syntax on' \
+  -c "set runtimepath^=$root" \
+  -c "edit $work/case.crv" \
+  -c 'set filetype=carve | set syntax=markdown' \
+  -c "call append(0, '') | doautocmd TextChanged" \
+  -c "redir! > $work/out" \
+  -c 'echo synIDattr(synID(4, 1, 0), "name")' \
+  -c 'redir END' \
+  -c 'qa!' </dev/null >/dev/null 2>&1
+actual="$(tr -d '\r\n' < "$work/out")"
+if [[ "$actual" == carve* ]]; then
+  fails+=("caret after syntax switch: unexpected Carve group $actual")
+else
+  pass=$((pass + 1))
+fi
+
+# Reloading the syntax must rebuild its line-specific opening caret match.
+"$vim_bin" -u NONE -N -es \
+  -c 'syntax on' \
+  -c "set runtimepath^=$root" \
+  -c "edit $work/case.crv" \
+  -c 'set filetype=carve | edit' \
+  -c "redir! > $work/out" \
+  -c 'echo synIDattr(synID(3, 1, 1), "name")' \
+  -c 'redir END' \
+  -c 'qa!' </dev/null >/dev/null 2>&1
+actual="$(tr -d '\r\n' < "$work/out")"
+if [[ -n "$actual" ]]; then
+  fails+=("caret after syntax reload: expected no group, got $actual")
 else
   pass=$((pass + 1))
 fi
