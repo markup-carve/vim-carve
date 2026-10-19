@@ -215,7 +215,7 @@ syntax region carveFigureGroup
       \ start=/^\s*\z(:\{3,}\) \+figure\s*$/
       \ end=/^\s*\z1\s*$/
       \ keepend
-      \ contains=ALLBUT,carveFigureGroup,carveParagraph,carveListItem,@carveIncludeParts
+      \ contains=ALLBUT,carveFigureGroup,carveCsvField,carveTsvField,carveParagraph,carveListItem,@carveIncludeParts
       \ nextgroup=carveCaption skipnl skipempty
 
 " ---------------------------------------------------------------------------
@@ -605,12 +605,14 @@ for s:entry in get(g:, 'carve_fenced_languages', s:fenced_default)
 endfor
 unlet! s:entry s:tag s:lang s:pat s:run s:more s:isk
 
+syntax match carveCsvField /[^,]\+/ contained
+syntax match carveTsvField /[^\t]\+/ contained
 syntax match carveCsvSeparator /,/ contained
 syntax match carveTsvSeparator /\t/ contained
 syntax region carveCsvString start=/\%(^\|,\)\@<="/ skip=/""/ end=/"/ contained
 syntax region carveTsvString start=/\%(^\|\t\)\@<="/ skip=/""/ end=/"/ contained
-for [s:tag, s:items] in [['csv', 'carveCsvSeparator,carveCsvString'],
-      \ ['tsv', 'carveTsvSeparator,carveTsvString']]
+for [s:tag, s:items] in [['csv', 'carveCsvField,carveCsvSeparator,carveCsvString'],
+      \ ['tsv', 'carveTsvField,carveTsvSeparator,carveTsvString']]
   for [s:run, s:more] in [['`\{3,}', '`*'], ['\~\{3,}', '\~*']]
     execute 'syntax region carveCodeBlock_' . s:tag
           \ . ' matchgroup=carveCodeFence'
@@ -769,6 +771,8 @@ highlight default link carveForcedUnderline Underlined
 highlight default link carveForcedStrike    Comment
 highlight default link carveForcedHighlight Search
 highlight default link carveDelim          Delimiter
+highlight default link carveCsvField       Identifier
+highlight default link carveTsvField       Identifier
 highlight default link carveCsvSeparator   Delimiter
 highlight default link carveTsvSeparator   Delimiter
 highlight default link carveCsvString      String

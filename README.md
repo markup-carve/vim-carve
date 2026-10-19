@@ -275,7 +275,7 @@ compiles the grammar from exactly the `install_info.files` list that
 Vim syntax, as `tag` or `tag=syntax` (the same shape as vim-markdown's
 `g:markdown_fenced_languages`). A tag is skipped when no `syntax/<name>.vim`
 is on the runtimepath. CSV and TSV fences have built-in highlighting for
-separators and quoted fields. Each entry loads a syntax file per buffer, so the
+separators, quoted fields and unquoted fields (each field is highlighted as `Identifier`, quoted ones as `String`). Each entry loads a syntax file per buffer, so the
 default is short:
 
 ```vim
