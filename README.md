@@ -274,7 +274,8 @@ compiles the grammar from exactly the `install_info.files` list that
 `g:carve_fenced_languages` lists the fence tags whose body gets that language's
 Vim syntax, as `tag` or `tag=syntax` (the same shape as vim-markdown's
 `g:markdown_fenced_languages`). A tag is skipped when no `syntax/<name>.vim`
-is on the runtimepath. Each entry loads a syntax file per buffer, so the
+is on the runtimepath. CSV and TSV fences have built-in highlighting for
+separators and quoted fields. Each entry loads a syntax file per buffer, so the
 default is short:
 
 ```vim

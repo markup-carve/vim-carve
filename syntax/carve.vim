@@ -604,6 +604,23 @@ for s:entry in get(g:, 'carve_fenced_languages', s:fenced_default)
   endfor
 endfor
 unlet! s:entry s:tag s:lang s:pat s:run s:more s:isk
+
+syntax match carveCsvSeparator /,/ contained
+syntax match carveTsvSeparator /\t/ contained
+syntax region carveCsvString start=/\%(^\|,\)\@<="/ skip=/""/ end=/"/ contained
+syntax region carveTsvString start=/\%(^\|\t\)\@<="/ skip=/""/ end=/"/ contained
+for [s:tag, s:items] in [['csv', 'carveCsvSeparator,carveCsvString'],
+      \ ['tsv', 'carveTsvSeparator,carveTsvString']]
+  for [s:run, s:more] in [['`\{3,}', '`*'], ['\~\{3,}', '\~*']]
+    execute 'syntax region carveCodeBlock_' . s:tag
+          \ . ' matchgroup=carveCodeFence'
+          \ . ' start=/^\s*\z(' . s:run . '\)\ze\s*' . s:tag . '\%(\s\|$\)/'
+          \ . ' end=/^\s*\z1' . s:more . '\s*$/ keepend'
+          \ . ' contains=carveCodeInfo,' . s:items . ',@NoSpell'
+          \ . ' nextgroup=carveCaption skipnl skipempty'
+  endfor
+endfor
+unlet! s:tag s:items s:run s:more
 syntax sync minlines=50
 
 " The info string after the opening delimiter. Defined after the included
@@ -752,6 +769,10 @@ highlight default link carveForcedUnderline Underlined
 highlight default link carveForcedStrike    Comment
 highlight default link carveForcedHighlight Search
 highlight default link carveDelim          Delimiter
+highlight default link carveCsvSeparator   Delimiter
+highlight default link carveTsvSeparator   Delimiter
+highlight default link carveCsvString      String
+highlight default link carveTsvString      String
 
 highlight default link carveCode           String
 highlight default link carveRawInline      String
