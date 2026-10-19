@@ -773,8 +773,8 @@ highlight default link carveForcedHighlight Search
 highlight default link carveDelim          Delimiter
 highlight default link carveCsvField       Identifier
 highlight default link carveTsvField       Identifier
-highlight default link carveCsvSeparator   Delimiter
-highlight default link carveTsvSeparator   Delimiter
+highlight default link carveCsvSeparator   Operator
+highlight default link carveTsvSeparator   Operator
 highlight default link carveCsvString      String
 highlight default link carveTsvString      String
 
