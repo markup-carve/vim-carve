@@ -158,6 +158,25 @@ else
   pass=$((pass + 1))
 fi
 
+# CSV and TSV separators resolve to Operator, which default colorschemes color.
+for grp in carveCsvSeparator carveTsvSeparator; do
+  "$vim_bin" -u NONE -N -es \
+    -c 'syntax on' \
+    -c "set runtimepath^=$root" \
+    -c "edit $work/case.crv" \
+    -c 'set filetype=carve' \
+    -c "redir! > $work/out" \
+    -c "silent hi $grp" \
+    -c 'redir END' \
+    -c 'qa!' </dev/null >/dev/null 2>&1
+  actual="$(tr -d '\r\n' < "$work/out")"
+  if [[ "$actual" == *"links to Operator" ]]; then
+    pass=$((pass + 1))
+  else
+    fails+=("$grp: expected Operator, got $actual")
+  fi
+done
+
 # A long line of unclosed openers makes the NFA engine give up; the emphasis
 # patterns must not fall back to the backtracking engine, which rejects their
 # wide Unicode classes (E945, E339).
