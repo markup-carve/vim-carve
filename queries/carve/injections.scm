@@ -21,6 +21,10 @@
   (code) @injection.content
   (#carve-set-lang-from-info-string! @_lang))
 
+(table
+  (language) @injection.language
+  (code) @injection.content)
+
 (raw_block
   (raw_block_info
     (language) @injection.language)

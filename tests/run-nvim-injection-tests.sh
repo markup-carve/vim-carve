@@ -73,9 +73,16 @@ end
 table.sort(langs)
 local resolved = {}
 local query = vim.treesitter.query.get('carve', 'injections')
-for _, _, metadata in query:iter_matches(parser:parse()[1]:root(), 0) do
+local captured = {}
+for _, match, metadata in query:iter_matches(parser:parse()[1]:root(), 0) do
   if metadata['injection.language'] then
     table.insert(resolved, metadata['injection.language'])
+  end
+  for id, node in pairs(match) do
+    if query.captures[id] == 'injection.language' then
+      node = type(node) == 'table' and node[#node] or node
+      table.insert(captured, vim.treesitter.get_node_text(node, 0))
+    end
   end
 end
 local captures = {}
@@ -83,7 +90,7 @@ for _, c in ipairs(vim.treesitter.get_captures_at_pos(0, 1, 0)) do
   table.insert(captures, c.lang .. ':' .. c.capture)
 end
 local f = assert(io.open(vim.env.PROBE_OUT, 'w'))
-f:write(table.concat(langs, ' '), '\n', table.concat(resolved, ' '), '\n', table.concat(captures, ' '), '\n')
+f:write(table.concat(langs, ' '), '\n', table.concat(resolved, ' '), '\n', table.concat(captures, ' '), '\n', table.concat(captured, ' '), '\n')
 f:close()
 LUA
 
@@ -94,7 +101,8 @@ fails=()
 
 # run_case NAME SOURCE FIELD EXPECTED
 #   FIELD 1: injected languages, 2: resolved injection languages,
-#   3: captures at row 1 column 0 (EXPECTED must be one of them)
+#   3: captures at row 1 column 0 (EXPECTED must be one of them),
+#   4: text of every @injection.language capture
 run_case() {
   local name="$1" source="$2" field="$3" want="$4"
   printf '%s' "$source" > "$work/case.crv"
@@ -133,6 +141,10 @@ run_case 'short tags resolve to their language' \
   $'```py\nx\n```\n\n```ts\nx\n```\n\n```sh\nx\n```\n\n```yml\nx\n```\n' 2 'python typescript bash yaml'
 run_case 'an unknown tag passes through unchanged' \
   $'```nosuchlang\nx\n```\n' 2 'nosuchlang'
+
+# A `{table}` fence body is injected like a code fence's (csv/tsv in practice).
+run_case 'a table fence language is captured for injection' \
+  $'{table}\n```csv\na,b\n```\n' 4 'csv'
 
 # A Carve sample inside Carve crashed Neovim 0.9 (vim-carve#51). 0.10.0 is the
 # first release that parses the self-injection, so below it the fence stays

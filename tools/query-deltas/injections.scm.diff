@@ -5,17 +5,17 @@
 >   (language) @_lang
 >   (code) @injection.content
 >   (#carve-set-lang-from-info-string! @_lang))
-26c27,28
+30c31,32
 <   (content) @injection.content)
 ---
 >   (content) @injection.content
 >   (#carve-injectable? @injection.language))
-31c33,34
+35c37,38
 <     (language) @injection.language))
 ---
 >     (language) @injection.language)
 >   (#carve-injectable? @injection.language))
-35c38,39
+39c42,43
 <   (frontmatter_content) @injection.content)
 ---
 >   (frontmatter_content) @injection.content
