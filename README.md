@@ -291,7 +291,7 @@ let g:carve_fenced_languages = ['bash=sh', 'diff', 'javascript',
 |---------------------|---------------------------------------------|------------------------------------------------------|
 | `parser_path`       | `nil`                                       | Register a pre-compiled parser directly.              |
 | `install_url`       | tree-sitter-carve repo                      | URL for `:TSInstall carve`.                           |
-| `install_revision`  | `54289cdf0b80ede3724e736c6e36fb536e2cf418`  | Revision to install (the 0.1.9 tag; pinned to the bundled queries). |
+| `install_revision`  | `ac26d47b231f7539f28213dea1902b5cf7112bef`  | Revision to install (the 0.1.10 tag; pinned to the bundled queries). |
 | `register_filetype` | `true`                                      | Map `carve` filetype to `carve` lang.                 |
 
 ## License
