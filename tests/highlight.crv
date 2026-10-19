@@ -193,6 +193,53 @@ x = 1
 ~~~
 %%^ carveCodeFence
 
+```csv
+Plan,Seats,Price per month
+%%    ^ carveCsvSeparator
+%%          ^ carveCsvSeparator
+Starter,1,"$0"
+%%       ^ carveCsvSeparator
+%%         ^ carveCsvSeparator
+%%          ^^^^ carveCsvString
+Team,10,"$49, billed yearly"
+%%    ^ carveCsvSeparator
+%%       ^ carveCsvSeparator
+%%            ^ carveCsvString
+%%       ^ carveCsvSeparator
+```
+%%^ carveCodeFence
+
+~~~csv
+"first
+%%^ carveCsvString
+second",tail
+%%^^^^^^^ carveCsvString
+%%       ^ carveCsvSeparator
+"a""b",x
+%%^^ carveCsvString
+%%   ^^ carveCsvString
+%%     ^ carveCsvString
+plain"quote,tail
+%%     ^ carveCodeBlock_csv
+%%           ^ carveCsvSeparator
+"unterminated
+%%^ carveCsvString
+%%            ^ carveCsvString
+~~~
+%%^ carveCodeFence
+
+```tsv
+name	"a	b",c
+%%    ^ carveTsvSeparator
+%%     ^ carveTsvString
+%%       ^ carveTsvString
+%%          ^ carveCodeBlock_tsv
+plain"quote	end
+%%     ^ carveCodeBlock_tsv
+%%           ^ carveTsvSeparator
+```
+%%^ carveCodeFence
+
 %% A php fence body is PHP without a `<?php` opener: php.vim alone reads it as HTML.
 ```php
 echo $a;
