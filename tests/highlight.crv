@@ -16,6 +16,15 @@ A :smile: symbol and a [link](/url) and ^[a note].
 - item
 %%^ carveListBullet
 
+- [ ] +
+%%      ^ carveContinuation
+
+- +
+%%  ^ carveContinuation
+
+1. +
+%%   ^ carveContinuation
+
 > quoted
 %%^^^^^^^^ carveBlockquote
 

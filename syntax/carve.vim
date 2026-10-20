@@ -132,8 +132,11 @@ syntax match carveTaskMark   /\[[ xX\-_>?]\]/ contained
 syntax match carveDefTerm /^:: \+\S\@=.*$/ contains=@carveInline,@Spell
 syntax match carveDefBody /^:\s\+\S\@=.*$/  contains=@carveInline,@Spell
 
-" Lone + / > continuation markers at column 0 (attach next block).
+" A lone + attaches the next block. It can also be an item's first content.
 syntax match carveContinuation /^[+]\s*$/
+syntax match carveContinuation /\%(^\s*[-*] \+\[[ xX\-_>?]\] \+\)\@<=[+]\s*$/ containedin=carveListItem,carveListTask
+syntax match carveContinuation /\%(^\s*[-*] \+\)\@<=[+]\s*$/ containedin=carveListItem
+syntax match carveContinuation /\%(^\s*\%(\d\+[.)]\|[a-zA-Z][.)]\|\.\) \+\)\@<=[+]\s*$/ containedin=carveListItem
 
 " ---------------------------------------------------------------------------
 " Math spans: inline $`..` and display $$`..`  (the ```math BLOCK is
