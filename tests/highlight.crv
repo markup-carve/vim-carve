@@ -1036,6 +1036,9 @@ a ==x== b and *real* bold
 %%  ^^^^^ (none)
 %%               ^^^^ carveBold
 
+*word*_
+%% ^^^^ carveBold
+
 %% A run may cross one line break, and a code span too; an opener with no
 %% closer on its line or the next opens nothing.
 an /italic
