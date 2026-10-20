@@ -124,7 +124,7 @@ syntax cluster carveQuoted contains=carveQuotedHeading,carveQuotedListMarker,car
 " that does open something (markup-carve/vim-carve#31).
 syntax match carveListBullet /^\s*[-*]\%({[^}]*}\)\= \+\S\@=/me=e-1 contains=carveInlineAttr
 syntax match carveListNumber /^\s*\%(\%(\d\+\|[a-zA-Z]\|[ivxlcdmIVXLCDM]\+\)[.)]\|\.\)\%({[^}]*}\)\= \+\S\@=/me=e-1 contains=carveInlineAttr
-syntax match carveListTask   /^\s*[-*] \+\[[ xX\-_>?]\]/
+syntax match carveListTask   /^\s*[-*] \+\[[ xX\-_>?]\]\ze \+[ \t]*\S/
       \ contains=carveListBullet,carveTaskMark
 syntax match carveTaskMark   /\[[ xX\-_>?]\]/ contained
 

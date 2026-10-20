@@ -47,6 +47,31 @@ while IFS=$'\t' read -r expected line; do
   fi
 done < "$here/cases.txt"
 
+# The checkbox is a task marker only when content follows it on the line.
+for case in '!carveTaskMark|- [ ]' '!carveTaskMark|- [ ]   ' \
+            'carveTaskMark|- [ ] done' 'carveTaskMark|- [ ] +' \
+            $'carveTaskMark|- [ ] \tdone' $'!carveTaskMark|- [ ]\tdone'; do
+  expected="${case%%|*}"
+  src="${case#*|}"
+  printf '%s\n' "$src" > "$work/case.crv"
+  "$vim_bin" -u NONE -N -es \
+    -c 'syntax on' \
+    -c "set runtimepath^=$root" \
+    -c "edit $work/case.crv" \
+    -c 'set filetype=carve' \
+    -c "redir! > $work/out" \
+    -c 'echo synIDattr(synID(1, 3, 1), "name")' \
+    -c 'redir END' \
+    -c 'qa!' </dev/null >/dev/null 2>&1
+  actual="$(tr -d '\r\n' < "$work/out")"
+  actual="${actual:-none}"
+  if [[ "$actual" == "$expected" || ( "$expected" == '!carveTaskMark' && "$actual" != 'carveTaskMark' ) ]]; then
+    pass=$((pass + 1))
+  else
+    fails+=("$src: expected $expected at checkbox, got $actual")
+  fi
+done
+
 # An opening caret line is prose after one or several leading blank lines.
 for blanks in 1 2; do
   printf '%*s' "$blanks" '' | tr ' ' '\n' > "$work/case.crv"
