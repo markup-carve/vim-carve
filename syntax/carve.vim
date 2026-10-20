@@ -293,11 +293,15 @@ function! s:emphasis(group, delim, extra_open, contains) abort
   let l:d = a:delim
   " `\%#=2` keeps these on the NFA engine: the backtracking fallback Vim uses on a
   " long line rejects the wide ranges in s:wordch (E945).
-  " The cheap lookahead rejects most unclosed openers before the one that has
-  " to step over link destinations and autolinks.
+  " The first lookahead rejects unclosed openers. Its ASCII guard is a subset
+  " of s:wordch, so the second lookahead still decides Unicode boundaries.
+  " Scan plain text in runs and test links only at their sigils. Keep each
+  " atom committed so a delimiter in a destination cannot be retried as text.
+  let l:plain = '[^!<\[\n' . substitute(l:d, '\\', '', 'g') . ']\+'
+  let l:atom = '\%(' . l:plain . '\|' . s:opaque . '\|[!<\[]\|' . l:d . '\)\@>'
   let l:open = '\%#=2\%(\w\|' . l:d . '\)\@1<!' . l:d . '\%(\s\|' . l:d . a:extra_open . '\)\@!'
-        \ . '\%(\%([^\n]*\n\)\=[^\n]\{-}\S' . l:d . s:wordch . '\@!\)\@='
-        \ . '\%(\%([^\n]*\n\)\=\%(\%(' . s:opaque . '\|[^\n]\)\@>\)\{-}\S' . l:d . s:wordch . '\@!\)\@='
+        \ . '\%(\%([^\n]*\n\)\=[^\n]\{-}\S' . l:d . '[A-Za-z0-9]\@!\)\@='
+        \ . '\%(\%([^\n]*\n\)\=\%(' . l:atom . '\)\{-}\S\@1<=' . l:d . s:wordch . '\@!\)\@='
   let l:close = '\%#=2\S\@1<=' . l:d . s:wordch . '\@!'
   execute 'syntax region ' . a:group . ' matchgroup=carveDelim start=`' . l:open . '` end=`' . l:close . '`'
         \ . ' skip=`' . s:opaque . '` keepend contains=' . a:contains . ' concealends'
