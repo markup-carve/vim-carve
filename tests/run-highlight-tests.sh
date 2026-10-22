@@ -144,6 +144,8 @@ T|>   +\n> para
 T|> - a\n> +\npara
 T|> +\n- c
 T|: +\nflush
+T|: a\n+\n- b
+M|                    - a\n                    +\n                    b
 T|[^a]: +\n- x
 T|[^a]: +\n  > q
 T|```\n+\n```

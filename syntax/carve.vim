@@ -41,7 +41,7 @@ syntax keyword carveTodo contained TODO FIXME XXX NOTE
 let s:marker = '\%(\%([-*]\|\%(\d\+\|\a\|[ivxlcdmIVXLCDM]\+\)[.)]\|\.\)\%({[^}]*}\)\=\)'
 let s:marker_line = '[ \t]*' . s:marker . ' \+\S'
 " A list item region per marker column (`carveListItemN`, see below).
-let s:item_cols = range(0, 16)
+let s:item_cols = range(0, 32)
 let s:item_names = join(map(copy(s:item_cols), '"carveListItem" . v:val'), ',')
 execute 'syntax cluster carveListItems contains=' . s:item_names
 " Lines that end a paragraph: every block opener except a list marker and a
@@ -139,7 +139,7 @@ syntax match carveDefTerm /^:: \+\S\@=.*$/ contains=@carveInline,@Spell
 " A `:` line is a description only below a term; a lazy or a lone one is
 " paragraph text (markup-carve/carve#3493).
 " The list runs from its term over descriptions, blank and indented lines.
-syntax region carveDefList start=/^\ze:: \+\S/ end=/^\ze\%(::\= \)\@!\S/
+syntax region carveDefList start=/^\ze:: \+\S/ end=/^\ze\%(::\= \|+\s*$\)\@!\S/
       \ transparent contains=TOP
 syntax match carveDefBody /^:\s\+\S\@=.*$/ contained containedin=carveDefList contains=@carveInline,@Spell
 
@@ -154,9 +154,11 @@ syntax match carveDefBody /^:\s\+\S\@=.*$/ contained containedin=carveDefList co
 let s:cm_next = '\ze[ \t]*\n'
 let s:cm_noitem = '\%(' . s:marker . ' \)\@!\S'
 " A quote line is one match, so the quoted forms are contained in it.
-for [s:q, s:in] in [['', ''], ['> \=', ' contained containedin=carveBlockquote']]
-  " The container on the line above, in the `+`'s column.
-  execute 'syntax match carveContinuation /\%(^' . s:q . ':\s\+\S.*\n\)\@<=' . s:q . '\zs+' . s:cm_next . s:q . '\S/' . s:in
+for [s:q, s:in, s:dl] in [['', '', ' contained containedin=carveDefList'],
+      \ ['> \=', ' contained containedin=carveBlockquote', ' contained containedin=carveBlockquote']]
+  " The container on the line above, in the `+`'s column. A description
+  " counts only inside a list a term opened.
+  execute 'syntax match carveContinuation /\%(^' . s:q . ':\s\+\S.*\n\)\@<=' . s:q . '\zs+' . s:cm_next . s:q . '\S/' . s:dl
   execute 'syntax match carveContinuation /\%(^' . s:q . '\[\^[^]]\+\]: \+\S.*\n\)\@<=' . s:q . '\zs+' . s:cm_next . s:q . '\S/' . s:in
   execute 'syntax match carveContinuation /\%(^' . s:q . '>\%( \|$\).*\n\)\@<=' . s:q . '\zs+' . s:cm_next . s:q . '\S/' . s:in
 endfor
