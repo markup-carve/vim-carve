@@ -110,6 +110,10 @@ M|> quoted\n+\n> attached
 M|:: t\n: a\n+\n- b
 M|[^a]: x\n+\n- b
 M|> - a\n> +\n> para
+M|> > - a\n> > +\n> > b
+M|> > - a\n> >\n> > +\n> > b
+M|> - a\n>\n> +\n> b
+M|> - a\n>\n>\n> +\n> b
 M|> +\nflush
 M|> > +\nflush
 M|> outer\n> > +\nflush
@@ -128,6 +132,18 @@ T|- a\n+\n- b
 T|1. a\n+\n2. b
 T|- a\n+
 T|- a\n+\n\nb
+T|> > - a\n>\n> > +\n> > b
+T|> > - a\n> > +\n> b
+T|> > - a\n> > +\n> > - b
+T|> > - a\n> >\n> > +
+T|> - a\n>\n> +\n> - b
+T|> - a\n>+\n> b
+T|> - a\n>\n>+\n> b
+T|> - a\n>\n>>+\n> b
+T|> - a\n>\n> >+\n> b
+T|> - a\n>\n>> +\n> b
+T|> > - a\n> >+\n> > b
+T|> > - a\n> >\n> >+\n> > b
 T|text\n- a\n+\nb
 T|para\n+\nx
 T|para\n\n+\nb
