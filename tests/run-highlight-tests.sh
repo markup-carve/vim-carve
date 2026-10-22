@@ -72,6 +72,34 @@ for case in '!carveTaskMark|- [ ]' '!carveTaskMark|- [ ]   ' \
   fi
 done
 
+# A lone `+` on its own line is the marker only when a block starts at column 0
+# on the next line; before a blank line, the end, an indented line or a list
+# marker it is refused and stays text (PART 9 SS17 L4). The first lone `+` line is checked.
+for case in 'carveContinuation|- a\n+\n> q' 'carveContinuation|- a\n+\npara' \
+            'carveContinuation|- a\n\n+\n```\nx\n```' \
+            '-|- a\n+\n\npara' '-|- a\n+' '-|- a\n+\n- s' '-|1. a\n+\n2. b' \
+            '-|- a\n+\n  x' '-|+\nx'; do
+  expected="${case%%|*}"
+  printf '%b\n' "${case#*|}" > "$work/case.crv"
+  line="$(grep -n '^+$' "$work/case.crv" | head -n1 | cut -d: -f1)"
+  "$vim_bin" -u NONE -N -es \
+    -c 'syntax on' \
+    -c "set runtimepath^=$root" \
+    -c "edit $work/case.crv" \
+    -c 'set filetype=carve' \
+    -c "redir! > $work/out" \
+    -c "echo synIDattr(synID($line, 1, 1), \"name\")" \
+    -c 'redir END' \
+    -c 'qa!' </dev/null >/dev/null 2>&1
+  actual="$(tr -d '\r\n' < "$work/out")"
+  actual="${actual:--}"
+  if [[ "$actual" == "$expected" ]]; then
+    pass=$((pass + 1))
+  else
+    fails+=("${case#*|}: expected $expected at the +, got $actual")
+  fi
+done
+
 # An opening caret line is prose after one or several leading blank lines.
 for blanks in 1 2; do
   printf '%*s' "$blanks" '' | tr ' ' '\n' > "$work/case.crv"

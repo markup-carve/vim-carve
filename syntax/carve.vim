@@ -133,7 +133,10 @@ syntax match carveDefTerm /^:: \+\S\@=.*$/ contains=@carveInline,@Spell
 syntax match carveDefBody /^:\s\+\S\@=.*$/  contains=@carveInline,@Spell
 
 " A lone + attaches the next block. It can also be an item's first content.
-syntax match carveContinuation /^[+]\s*$/
+" On its own line it is refused, and stays text, on the first line or before a
+" blank line, the end of the buffer, an indented line or a list marker (PART 9
+" SS17 L4).
+syntax match carveContinuation /^\%>1l[+]\ze\s*\n\%([-*] \|\%(\d\+\|[a-zA-Z]\|[ivxlcdmIVXLCDM]\+\)[.)] \|\. \)\@!\S/
 syntax match carveContinuation /\%(^\s*[-*] \+\[[ xX\-_>?]\] \+\)\@<=[+]\s*$/ containedin=carveListItem,carveListTask
 syntax match carveContinuation /\%(^\s*[-*] \+\)\@<=[+]\s*$/ containedin=carveListItem
 syntax match carveContinuation /\%(^\s*\%(\d\+[.)]\|[a-zA-Z][.)]\|\.\) \+\)\@<=[+]\s*$/ containedin=carveListItem

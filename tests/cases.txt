@@ -36,7 +36,8 @@ carveDelim	`{% stays code %}`
 # the bullet rule painted a list marker on each (markup-carve/vim-carve#31).
 -	+ x
 -	+ [ ] x
-# A lone `+` is the continuation marker; a `+` line ending in a pipe is a
-# table continuation row. Told apart by the line alone, no context needed.
-carveContinuation	+
+# A lone `+` with nothing after it is refused and stays text; a `+` line
+# ending in a pipe is a table continuation row. The multi-line marker cases
+# are in run-highlight-tests.sh.
+-	+
 carveTableContinuation	+ more | z |
