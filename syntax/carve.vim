@@ -162,9 +162,21 @@ for [s:q, s:in, s:dl] in [['', '', ' contained containedin=carveDefList'],
   execute 'syntax match carveContinuation /\%(^' . s:q . '\[\^[^]]\+\]: \+\S.*\n\)\@<=' . s:q . '\zs+' . s:cm_next . s:q . '\S/' . s:in
   execute 'syntax match carveContinuation /\%(^' . s:q . '>\%( \|$\).*\n\)\@<=' . s:q . '\zs+' . s:cm_next . s:q . '\S/' . s:in
 endfor
-" An item inside a quote has no region, so only the line above is read.
-for s:in in [' contained containedin=carveBlockquote', '']
-  execute 'syntax match carveContinuation /\%(^> ' . s:marker . ' \+\S.*\n> \)\@<=+' . s:cm_next . '> ' . s:cm_noitem . '/' . s:in
+" An item inside a quote has no region, so only the line above is read. Blank
+" quote lines of the item's depth between the item and the `+` keep it open
+" (`> - a` / `>` / `> +` / `> b`); a look-behind cannot reach past them, so a
+" gap region runs over them and ends on the `+` it attaches.
+for s:k in range(1, 3)
+  let s:qp = repeat('> ', s:k)
+  let s:qplus = s:qp . '+' . s:cm_next . s:qp . s:cm_noitem
+  for s:in in [' contained containedin=carveBlockquote', '']
+    execute 'syntax match carveContinuation /\%(^' . s:qp . s:marker . ' \+\S.*\n' . s:qp . '\)\@<=+'
+          \ . s:cm_next . s:qp . s:cm_noitem . '/' . s:in
+  endfor
+  let s:qblank = repeat('> ', s:k - 1) . '>[ \t]*$'
+  execute 'syntax region carveQuotedItemGap start=/\%(^' . s:qp . s:marker . ' \+\S.*\n\)\@<=\ze' . s:qblank . '/'
+        \ . ' matchgroup=carveContinuation end=/^' . s:qp . '\zs+\ze' . s:qplus[strlen(s:qp) + 1:] . '/'
+        \ . ' end=/^\ze\%(' . s:qblank . '\|' . s:qplus . '\)\@!/'
 endfor
 " The FIRST-BLOCK forms. After an item opener the `+` is always a marker; after
 " `[^a]: ` or on the first line of a quote the next line must be flush text,
@@ -778,6 +790,7 @@ highlight default link carveTaskMark       Special
 highlight default link carveDefTerm        Type
 highlight default link carveDefBody        Normal
 highlight default link carveContinuation   Special
+highlight default link carveQuotedItemGap  carveBlockquote
 highlight default link carveFootContinuation Special
 
 highlight default link carveCodeBlock      String
