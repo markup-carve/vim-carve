@@ -40,4 +40,8 @@ carveDelim	`{% stays code %}`
 # ending in a pipe is a table continuation row. The multi-line marker cases
 # are in run-highlight-tests.sh.
 -	+
+# A glued quote marker is no quote line (markup-carve/carve#3421): plain text.
+-	>+
+-	>>+
+-	>> +
 carveTableContinuation	+ more | z |
