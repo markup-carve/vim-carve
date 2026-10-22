@@ -72,6 +72,113 @@ for case in '!carveTaskMark|- [ ]' '!carveTaskMark|- [ ]   ' \
   fi
 done
 
+# A lone `+` is the marker only where it attaches the next block: at an open
+# container's marker column with a block at that column next, or right after a
+# block opener (PART 9 SS17). Every other `+` stays text. The first `+` that
+# ends a line is checked; each row was read against carve-js main.
+while IFS='|' read -r expected src; do
+  [[ -z "$expected" || "$expected" == \#* ]] && continue
+  printf '%b\n' "$src" > "$work/case.crv"
+  pos="$(awk '/\+[ \t]*$/ { print NR, index($0, "+"); exit }' "$work/case.crv")"
+  "$vim_bin" -u NONE -N -es \
+    -c 'syntax on' \
+    -c "set runtimepath^=$root" \
+    -c "edit $work/case.crv" \
+    -c 'set filetype=carve' \
+    -c "redir! > $work/out" \
+    -c "echo join(map(synstack(${pos% *}, ${pos#* }), 'synIDattr(v:val, \"name\")'))" \
+    -c 'redir END' \
+    -c 'qa!' </dev/null >/dev/null 2>&1
+  stack="$(tr -d '\r\n' < "$work/out")"
+  if [[ " $stack " == *Continuation* ]]; then actual=M; else actual=T; fi
+  if [[ "$actual" == "$expected" ]]; then
+    pass=$((pass + 1))
+  else
+    fails+=("$src: expected $expected at the +, got $actual ($stack)")
+  fi
+done <<'CASES'
+M|- a\n+\nb
+M|- a\n  - b\n  +\n  c
+M|- a\n  - b\n+\npara
+M|  - a\n  +\n  b
+M|1. a\n+\nb
+M|- a\n\n+\nb
+M|- a\nlazy\n+\nb
+M|- a\n+\n> q
+M|- a\n+\n```\nx\n```
+M|> quoted\n+\n> attached
+M|:: t\n: a\n+\n- b
+M|[^a]: x\n+\n- b
+M|> - a\n> +\n> para
+M|> +\nflush
+M|> > +\nflush
+M|> outer\n> > +\nflush
+M|- a\n  > +\npara
+M|- +\nflush
+M|- [ ] +\nflush
+M|- > +\nflush
+M|- - +\nflush
+M|:: t\n: +\nflush
+M|[^a]: +\nflush
+T|- a\n  +\n  b
+T|- a\n    +\n    b
+T|- a\n  - b\n  +\npara
+T|- a\n  - b\n+\n  c
+T|- a\n+\n- b
+T|1. a\n+\n2. b
+T|- a\n+
+T|- a\n+\n\nb
+T|text\n- a\n+\nb
+T|para\n+\nx
+T|para\n\n+\nb
+T|+\nx
+T|> a\n> +\n> b
+T|> +\n> x
+T|> +
+T|> +\n\nafter
+T|> a\n> +\nflush
+T|>   +\n> para
+T|> - a\n> +\npara
+T|> +\n- c
+T|: +\nflush
+T|>+\nflush
+T|>>+\nflush
+T|> >+\nflush
+T|>> +\nflush
+T|> - a\n>+\n> para
+T|:: t\n: +\n- a
+T|: a\n+\n- b
+M|                    - a\n                    +\n                    b
+T|[^a]: +\n- x
+T|[^a]: +\n  > q
+T|```\n+\n```
+T|- a\n  ```\n  +\n  x\n  ```
+CASES
+
+# A `:` line is a description only below a term; a lazy colon line in a quote
+# and a lone one are paragraph text (carve#3493).
+for case in 'carveDefBody|:: t\n: d' 'carveDefBody|:: t\n\n: d' '-|: d' \
+            '-|> a\n: d' '-|> :: t\n: d' '-|:: t\n\nfoo\n: d'; do
+  expected="${case%%|*}"
+  printf '%b\n' "${case#*|}" > "$work/case.crv"
+  "$vim_bin" -u NONE -N -es \
+    -c 'syntax on' \
+    -c "set runtimepath^=$root" \
+    -c "edit $work/case.crv" \
+    -c 'set filetype=carve' \
+    -c "redir! > $work/out" \
+    -c 'echo synIDattr(synID(line("$"), 1, 1), "name")' \
+    -c 'redir END' \
+    -c 'qa!' </dev/null >/dev/null 2>&1
+  actual="$(tr -d '\r\n' < "$work/out")"
+  actual="${actual:--}"
+  if [[ "$actual" == "$expected" || ( "$expected" == - && "$actual" != carveDefBody ) ]]; then
+    pass=$((pass + 1))
+  else
+    fails+=("${case#*|}: expected $expected on the last line, got $actual")
+  fi
+done
+
 # An opening caret line is prose after one or several leading blank lines.
 for blanks in 1 2; do
   printf '%*s' "$blanks" '' | tr ' ' '\n' > "$work/case.crv"
