@@ -110,11 +110,8 @@ M|> quoted\n+\n> attached
 M|:: t\n: a\n+\n- b
 M|[^a]: x\n+\n- b
 M|> - a\n> +\n> para
-M|> - a\n>+\n> para
 M|> +\nflush
-M|>+\nflush
 M|> > +\nflush
-M|>> +\nflush
 M|> outer\n> > +\nflush
 M|- a\n  > +\npara
 M|- +\nflush
@@ -144,6 +141,12 @@ T|>   +\n> para
 T|> - a\n> +\npara
 T|> +\n- c
 T|: +\nflush
+T|>+\nflush
+T|>>+\nflush
+T|> >+\nflush
+T|>> +\nflush
+T|> - a\n>+\n> para
+T|:: t\n: +\n- a
 T|: a\n+\n- b
 M|                    - a\n                    +\n                    b
 T|[^a]: +\n- x

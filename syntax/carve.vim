@@ -155,7 +155,7 @@ let s:cm_next = '\ze[ \t]*\n'
 let s:cm_noitem = '\%(' . s:marker . ' \)\@!\S'
 " A quote line is one match, so the quoted forms are contained in it.
 for [s:q, s:in, s:dl] in [['', '', ' contained containedin=carveDefList'],
-      \ ['> \=', ' contained containedin=carveBlockquote', ' contained containedin=carveBlockquote']]
+      \ ['> ', ' contained containedin=carveBlockquote', ' contained containedin=carveBlockquote']]
   " The container on the line above, in the `+`'s column. A description
   " counts only inside a list a term opened.
   execute 'syntax match carveContinuation /\%(^' . s:q . ':\s\+\S.*\n\)\@<=' . s:q . '\zs+' . s:cm_next . s:q . '\S/' . s:dl
@@ -164,26 +164,28 @@ for [s:q, s:in, s:dl] in [['', '', ' contained containedin=carveDefList'],
 endfor
 " An item inside a quote has no region, so only the line above is read.
 for s:in in [' contained containedin=carveBlockquote', '']
-  execute 'syntax match carveContinuation /\%(^> \=' . s:marker . ' \+\S.*\n> \=\)\@<=+' . s:cm_next . '> \=' . s:cm_noitem . '/' . s:in
+  execute 'syntax match carveContinuation /\%(^> ' . s:marker . ' \+\S.*\n> \)\@<=+' . s:cm_next . '> ' . s:cm_noitem . '/' . s:in
 endfor
 " The FIRST-BLOCK forms. After an item opener the `+` is always a marker; after
 " `[^a]: ` or on the first line of a quote the next line must be flush text,
-" not a list and not quoted; after `: ` the line above must be a term.
+" not a list and not quoted; after `: ` the line above must be a term and a
+" blank line or a column-0 list below refuses it. Each `>` takes its space:
+" `>+`, `>>+`, `> >+` and `>> +` are no quote lines, so they stay text.
 let s:cm_item = '\%(' . s:marker . ' \+\%(\[[ xX\-_>?]\] \+\)\=\)'
-let s:cm_chain = '\%(> \=\|' . s:cm_item . '\|: \+\)*'
+let s:cm_chain = '\%(> \|' . s:cm_item . '\|: \+\)*'
 let s:cm_flush = s:cm_next . '\%([ \t>]\|' . s:marker . ' \)\@!\S'
 execute 'syntax match carveContinuation /\%(^[ \t]*' . s:cm_chain . s:cm_item . '\)\@<=+[ \t]*$/ containedin=' . s:item_names . ',carveListTask,carveBlockquote'
-execute 'syntax match carveContinuation /\%(^[ \t]*\%(' . s:cm_item . '\|: \+\)' . s:cm_chain . '> \=\)\@<=+' . s:cm_flush . '/ containedin=' . s:item_names . ',carveDefBody'
+execute 'syntax match carveContinuation /\%(^[ \t]*\%(' . s:cm_item . '\|: \+\)' . s:cm_chain . '> \)\@<=+' . s:cm_flush . '/ containedin=' . s:item_names . ',carveDefBody'
 " A quote K deep opens on this line when the line above is quoted less deep;
 " the next line may keep fewer than K markers.
 for s:k in range(1, 3)
-  let s:deep = '[ \t]*>\%( \=>\)\{' . (s:k - 1) . '}'
-  let s:pat = '\%(\%(\%^\|^\%(' . s:deep . '\)\@!.*\n\)' . s:deep . ' \=\)\@<=+' . s:cm_next
-        \ . '\%([ \t]*> \=\)\{,' . (s:k - 1) . '}\%([ \t>]\|' . s:marker . ' \)\@!\S'
+  let s:deep = '[ \t]*>\%( >\)\{' . (s:k - 1) . '}'
+  let s:pat = '\%(\%(\%^\|^\%(' . s:deep . '\)\@!.*\n\)' . s:deep . ' \)\@<=+' . s:cm_next
+        \ . '\%([ \t]*>\%( \|$\)\)\{,' . (s:k - 1) . '}\%([ \t]\|>\%( \|$\)\|' . s:marker . ' \)\@!\S'
   execute 'syntax match carveContinuation /' . s:pat . '/ contained containedin=carveBlockquote'
   execute 'syntax match carveContinuation /' . s:pat . '/'
 endfor
-execute 'syntax match carveContinuation /\%(^\%([ \t]*> \=\)*::\= .*\n[ \t]*' . s:cm_chain . ': \+\)\@<=+[ \t]*$/ containedin=carveDefBody'
+execute 'syntax match carveContinuation /\%(^\%([ \t]*> \)*::\= .*\n[ \t]*' . s:cm_chain . ': \+\)\@<=+\ze[ \t]*\n\%([ \t]*\n\|' . s:marker . ' \)\@!/ containedin=carveDefBody'
 syntax match carveFootContinuation /\%(^\[\^[^]]\+\]: \+\)\@<=+\ze[ \t]*\n\%([ \t]\|[-*] \|\%(\d\+\|\a\|[ivxlcdmIVXLCDM]\+\)[.)] \|\. \)\@!\S/ contained
 
 " ---------------------------------------------------------------------------
@@ -542,7 +544,7 @@ syntax cluster carveInline contains=@carveInlineNoLink,carveCommentInline,carveL
 " marker inside it opens the next (or a nested) item.
 " ---------------------------------------------------------------------------
 let s:para_skip = '\%(' . s:interrupt('') . '\|#\{1,6} \+\S\|' . s:marker_line
-      \ . '\|\^ \+\S\|: \+\S\|+\s*$\|>\%( \=>\)* \=+\s*$\|+.*|\s*$\|!\[\|\$\$`\)'
+      \ . '\|\^ \+\S\|: \+\S\|+\s*$\|+.*|\s*$\|!\[\|\$\$`\)'
 execute 'syntax region carveParagraph start=/^\%(' . s:para_skip . '\)\@!\ze\S/'
       \ . ' end=/^\ze\%(\s*$\|#\{1,6} \+\S\|' . s:interrupt('[ \t]*') . '\)/'
       \ . ' keepend transparent contains=@carveInline,carveComment,carveMathDisplay,@Spell'
