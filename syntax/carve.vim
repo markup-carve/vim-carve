@@ -15,6 +15,8 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 syntax sync minlines=50
+" A lone `+` reads the line below it, so an edit there redraws it too.
+syntax sync linebreaks=1
 syntax spell toplevel
 
 " ---------------------------------------------------------------------------
@@ -38,6 +40,10 @@ syntax keyword carveTodo contained TODO FIXME XXX NOTE
 " A list marker, with an optional glued attribute block (`-{.c} item`).
 let s:marker = '\%(\%([-*]\|\%(\d\+\|\a\|[ivxlcdmIVXLCDM]\+\)[.)]\|\.\)\%({[^}]*}\)\=\)'
 let s:marker_line = '[ \t]*' . s:marker . ' \+\S'
+" A list item region per marker column (`carveListItemN`, see below).
+let s:item_cols = range(0, 16)
+let s:item_names = join(map(copy(s:item_cols), '"carveListItem" . v:val'), ',')
+execute 'syntax cluster carveListItems contains=' . s:item_names
 " Lines that end a paragraph: every block opener except a list marker and a
 " caption, which do not interrupt one. `i` is the indentation allowed before
 " the opener.
@@ -130,16 +136,53 @@ syntax match carveTaskMark   /\[[ xX\-_>?]\]/ contained
 
 " Definition lists: '::' term then ':' definition.
 syntax match carveDefTerm /^:: \+\S\@=.*$/ contains=@carveInline,@Spell
-syntax match carveDefBody /^:\s\+\S\@=.*$/  contains=@carveInline,@Spell
+" A `:` line is a description only below a term; a lazy or a lone one is
+" paragraph text (markup-carve/carve#3493).
+" The list runs from its term over descriptions, blank and indented lines.
+syntax region carveDefList start=/^\ze:: \+\S/ end=/^\ze\%(::\= \)\@!\S/
+      \ transparent contains=TOP
+syntax match carveDefBody /^:\s\+\S\@=.*$/ contained containedin=carveDefList contains=@carveInline,@Spell
 
-" A lone + attaches the next block. It can also be an item's first content.
-" On its own line it is refused, and stays text, on the first line or before a
-" blank line, the end of the buffer, an indented line or a list marker (PART 9
-" SS17 L4).
-syntax match carveContinuation /^\%>1l[+]\ze\s*\n\%([-*] \|\%(\d\+\|[a-zA-Z]\|[ivxlcdmIVXLCDM]\+\)[.)] \|\. \)\@!\S/
-syntax match carveContinuation /\%(^\s*[-*] \+\[[ xX\-_>?]\] \+\)\@<=[+]\s*$/ containedin=carveListItem,carveListTask
-syntax match carveContinuation /\%(^\s*[-*] \+\)\@<=[+]\s*$/ containedin=carveListItem
-syntax match carveContinuation /\%(^\s*\%(\d\+[.)]\|[a-zA-Z][.)]\|\.\) \+\)\@<=[+]\s*$/ containedin=carveListItem
+" A LONE + attaches the next block, or it stays text (PART 9 SS17). It is a
+" marker at the marker column of an open item, description, footnote or quote
+" when the next line starts a block at that column (a sibling item refuses
+" it), and right after a block opener on its own line.
+"
+" A look-behind reaches one line up, so an item's column comes from its region:
+" each `carveListItemN` (below, with the paragraph rules) holds a `+` at column
+" N. Descriptions, footnotes and quotes are read from the line right above.
+let s:cm_next = '\ze[ \t]*\n'
+let s:cm_noitem = '\%(' . s:marker . ' \)\@!\S'
+" A quote line is one match, so the quoted forms are contained in it.
+for [s:q, s:in] in [['', ''], ['> \=', ' contained containedin=carveBlockquote']]
+  " The container on the line above, in the `+`'s column.
+  execute 'syntax match carveContinuation /\%(^' . s:q . ':\s\+\S.*\n\)\@<=' . s:q . '\zs+' . s:cm_next . s:q . '\S/' . s:in
+  execute 'syntax match carveContinuation /\%(^' . s:q . '\[\^[^]]\+\]: \+\S.*\n\)\@<=' . s:q . '\zs+' . s:cm_next . s:q . '\S/' . s:in
+  execute 'syntax match carveContinuation /\%(^' . s:q . '>\%( \|$\).*\n\)\@<=' . s:q . '\zs+' . s:cm_next . s:q . '\S/' . s:in
+endfor
+" An item inside a quote has no region, so only the line above is read.
+for s:in in [' contained containedin=carveBlockquote', '']
+  execute 'syntax match carveContinuation /\%(^> \=' . s:marker . ' \+\S.*\n> \=\)\@<=+' . s:cm_next . '> \=' . s:cm_noitem . '/' . s:in
+endfor
+" The FIRST-BLOCK forms. After an item opener the `+` is always a marker; after
+" `[^a]: ` or on the first line of a quote the next line must be flush text,
+" not a list and not quoted; after `: ` the line above must be a term.
+let s:cm_item = '\%(' . s:marker . ' \+\%(\[[ xX\-_>?]\] \+\)\=\)'
+let s:cm_chain = '\%(> \=\|' . s:cm_item . '\|: \+\)*'
+let s:cm_flush = s:cm_next . '\%([ \t>]\|' . s:marker . ' \)\@!\S'
+execute 'syntax match carveContinuation /\%(^[ \t]*' . s:cm_chain . s:cm_item . '\)\@<=+[ \t]*$/ containedin=' . s:item_names . ',carveListTask,carveBlockquote'
+execute 'syntax match carveContinuation /\%(^[ \t]*\%(' . s:cm_item . '\|: \+\)' . s:cm_chain . '> \=\)\@<=+' . s:cm_flush . '/ containedin=' . s:item_names . ',carveDefBody'
+" A quote K deep opens on this line when the line above is quoted less deep;
+" the next line may keep fewer than K markers.
+for s:k in range(1, 3)
+  let s:deep = '[ \t]*>\%( \=>\)\{' . (s:k - 1) . '}'
+  let s:pat = '\%(\%(\%^\|^\%(' . s:deep . '\)\@!.*\n\)' . s:deep . ' \=\)\@<=+' . s:cm_next
+        \ . '\%([ \t]*> \=\)\{,' . (s:k - 1) . '}\%([ \t>]\|' . s:marker . ' \)\@!\S'
+  execute 'syntax match carveContinuation /' . s:pat . '/ contained containedin=carveBlockquote'
+  execute 'syntax match carveContinuation /' . s:pat . '/'
+endfor
+execute 'syntax match carveContinuation /\%(^\%([ \t]*> \=\)*::\= .*\n[ \t]*' . s:cm_chain . ': \+\)\@<=+[ \t]*$/ containedin=carveDefBody'
+syntax match carveFootContinuation /\%(^\[\^[^]]\+\]: \+\)\@<=+\ze[ \t]*\n\%([ \t]\|[-*] \|\%(\d\+\|\a\|[ivxlcdmIVXLCDM]\+\)[.)] \|\. \)\@!\S/ contained
 
 " ---------------------------------------------------------------------------
 " Math spans: inline $`..` and display $$`..`  (the ```math BLOCK is
@@ -221,7 +264,7 @@ syntax region carveFigureGroup
       \ start=/^\s*\z(:\{3,}\) \+figure\s*$/
       \ end=/^\s*\z1\s*$/
       \ keepend
-      \ contains=ALLBUT,carveFigureGroup,carveCsvField,carveTsvField,carveParagraph,carveListItem,@carveIncludeParts
+      \ contains=ALLBUT,carveFigureGroup,carveCsvField,carveTsvField,carveParagraph,@carveListItems,@carveIncludeParts
       \ nextgroup=carveCaption skipnl skipempty
 
 " ---------------------------------------------------------------------------
@@ -497,19 +540,31 @@ syntax cluster carveInline contains=@carveInlineNoLink,carveCommentInline,carveL
 " marker inside it opens the next (or a nested) item.
 " ---------------------------------------------------------------------------
 let s:para_skip = '\%(' . s:interrupt('') . '\|#\{1,6} \+\S\|' . s:marker_line
-      \ . '\|\^ \+\S\|: \+\S\|+\s*$\|+.*|\s*$\|!\[\|\$\$`\)'
+      \ . '\|\^ \+\S\|: \+\S\|+\s*$\|>\%( \=>\)* \=+\s*$\|+.*|\s*$\|!\[\|\$\$`\)'
 execute 'syntax region carveParagraph start=/^\%(' . s:para_skip . '\)\@!\ze\S/'
       \ . ' end=/^\ze\%(\s*$\|#\{1,6} \+\S\|' . s:interrupt('[ \t]*') . '\)/'
       \ . ' keepend transparent contains=@carveInline,carveComment,carveMathDisplay,@Spell'
-execute 'syntax region carveListItem start=/^\ze' . s:marker_line . '/'
-      \ . ' end=/^\ze\%(' . s:marker_line . '\|#\{1,6} \+\S\|' . s:interrupt('') . '\)\|^\s*\n\ze\S/'
-      \ . ' transparent contains=TOP,carveParagraph,carveListItem'
+" One region per marker column, so a lone `+` can find the item whose marker
+" sits in its column (PART 9 SS17). A region ends at an item in its column or
+" left of it, at a less indented line, and at a column-0 block opener.
+for s:n in s:item_cols
+  let s:in = ' \{' . s:n . '}'
+  let s:end = '^\ze\%( \{0,' . s:n . '}' . s:marker . ' \+\S\|#\{1,6} \+\S\|' . s:interrupt('') . '\)'
+        \ . '\|^\s*\n\ze \{0,' . s:n . '}\%(+\s*$\)\@!\S'
+        \ . (s:n ? '\|^\ze \{0,' . (s:n - 1) . '}\S' : '')
+  execute 'syntax region carveListItem' . s:n . ' start=/^\ze' . s:in . s:marker . ' \+\S/'
+        \ . ' end=/' . s:end . '/'
+        \ . ' transparent contains=TOP,carveParagraph,' . join(map(range(0, s:n), '"carveListItem" . v:val'), ',')
+  execute 'syntax match carveContinuation /^' . s:in . '\zs+' . s:cm_next . s:in . s:cm_noitem . '/'
+        \ . ' contained containedin=carveListItem' . s:n
+endfor
+
 " Indented blocks that only open inside a list item: at the top level an
 " indented `# H` is prose.
-syntax match carveListHeading /^[ \t]\+#\{1,6} \+\S.*$/ contained containedin=carveListItem
-      \ contains=@carveInline,carveTrailingComment,@Spell
-syntax match carveListDefTerm /^[ \t]\+:: \+\S.*$/ contained containedin=carveListItem contains=@carveInline,@Spell
-syntax match carveListDefBody /^[ \t]\+: \+\S.*$/ contained containedin=carveListItem contains=@carveInline,@Spell
+execute 'syntax match carveListHeading /^[ \t]\+#\{1,6} \+\S.*$/ contained containedin=' . s:item_names
+      \ . ' contains=@carveInline,carveTrailingComment,@Spell'
+execute 'syntax match carveListDefTerm /^[ \t]\+:: \+\S.*$/ contained containedin=' . s:item_names . ' contains=@carveInline,@Spell'
+execute 'syntax match carveListDefBody /^[ \t]\+: \+\S.*$/ contained containedin=' . s:item_names . ' contains=@carveInline,@Spell'
 
 " An image or display math line takes a caption.
 execute 'syntax match carveFigureLine /^[ \t]*\%(!' . s:link_label . '\%((' . s:link_dest . s:link_title . ')\|\[[^]]*\]\)\%({[^}]*}\)\=\|\$\$`[^`]*`\)\s*$/'
@@ -536,7 +591,7 @@ execute 'syntax match carveFigureLine /^[ \t]*\%(!' . s:link_label . '\%((' . s:
 " Reference, footnote and abbreviation definitions. Defined after carveLink,
 " carveFootRef and carveBold, which start at the same column.
 syntax match carveRefDef   /^\s*\[[^^][^]]*\]: .*$/ contains=carveRefLabel,carveUrl
-syntax match carveFootDef  /^\s*\[\^[^]]\+\]: .*$/  contains=carveFootRef,@carveInline
+syntax match carveFootDef  /^\s*\[\^[^]]\+\]: .*$/  contains=carveFootRef,carveFootContinuation,@carveInline
 syntax match carveAbbrDef  /^\s*\*\[[^]]\+\]: .*$/  contains=carveAbbrLabel
 
 " Thematic break: --- *** ___
@@ -719,6 +774,7 @@ highlight default link carveTaskMark       Special
 highlight default link carveDefTerm        Type
 highlight default link carveDefBody        Normal
 highlight default link carveContinuation   Special
+highlight default link carveFootContinuation Special
 
 highlight default link carveCodeBlock      String
 highlight default link carveCodeFence      Delimiter
