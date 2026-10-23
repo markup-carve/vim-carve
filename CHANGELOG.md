@@ -8,6 +8,30 @@ Releases before 0.1.6 are described on the
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-10-23
+
+### Fixed
+
+- A lone `+` is highlighted as a continuation marker only where it attaches
+  the next block, at the owning item's column; a refused `+` stays text, and
+  glued quote prefixes `>+`, `>>+`, `> >+` and `>> +` are text (#80).
+- A quoted item's `+` is highlighted two and three quotes deep and after
+  blank quote lines (#81).
+- A checkbox is a task marker only when content follows it (#77).
+- Classic Vim emphasis highlighting is faster on dense text (#71, #78).
+- Neovim injects the language of a `{table}` csv or tsv fence (#75).
+- The Neovim parser pin moves to tree-sitter-carve `6564ab4`, which reads a
+  `+` glued to a quote prefix as text and attaches the block after a
+  first-block `+` in footnotes and descriptions (#82).
+
+### Added
+
+- `csv` and `tsv` fence bodies are highlighted: separators link to
+  `Operator`, quoted fields to `String`, unquoted fields to `Identifier`
+  (#72, #73, #74).
+- The `+` continuation marker has its own highlight in classic Vim and is
+  captured as an operator in the Neovim query (#76).
+
 ## [0.1.7] - 2026-10-14
 
 ### Fixed
