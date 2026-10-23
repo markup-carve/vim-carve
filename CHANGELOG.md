@@ -23,13 +23,18 @@ Releases before 0.1.6 are described on the
   quote or description opened in an item, an item opened after another
   marker (`- - x`), a tab-indented item, and a first-block `- > +` whose
   follower sits at column 0, the line's indent or the quote's column. A
-  description's `: +` above a column-0 list is a marker (#85).
+  description's `: +` above a column-0 list is a marker (#85). Classic
+  Vim does more work per line to place the marker, so very large files
+  highlight somewhat slower.
 - A checkbox is a task marker only when content follows it (#77).
 - Classic Vim emphasis highlighting is faster on dense text (#71, #78).
 - Neovim injects the language of a `{table}` csv or tsv fence (#75).
-- The Neovim parser pin moves to tree-sitter-carve `6564ab4`, which reads a
-  `+` glued to a quote prefix as text and attaches the block after a
-  first-block `+` in footnotes and descriptions (#82).
+- The Neovim parser pin moves to tree-sitter-carve 0.1.11 (`4f400d1`), which
+  reads a `+` glued to a quote prefix as text, attaches the block after a
+  first-block `+` in footnotes and descriptions, and reads a quoted item's
+  `+` at its content column as a marker (#82, #86).
+- Neovim colors `table` as reserved above a CSV or TSV code include, from the
+  re-copied tree-sitter-carve 0.1.11 queries (#86).
 
 ### Added
 
