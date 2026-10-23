@@ -70,7 +70,8 @@ run_case() {
   local got='-' got_end='-'
   while IFS='|' read -r capture srow scol erow ecol; do
     [[ "$srow" == "$row" && "$scol" == "$column" ]] || continue
-    [[ "$erow" == "$row" ]] || continue
+    # A marker node that takes its line ending ends at column 0 of the next row.
+    [[ "$erow" == "$row" || ( "$erow" == "$((row + 1))" && "$ecol" == 0 ) ]] || continue
     [[ "$capture" =~ $not_a_color ]] && continue
     got="$capture"
     got_end="$ecol"
@@ -134,7 +135,15 @@ run_case 'control: an unterminated quote still stops at the space' \
   '{{ part.crv @label:"two words }}'$'\n' 0 19 constant 23
 run_case 'control: a tag outside a directive is still a tag' \
   'see #intro here'$'\n' 0 4 tag -
-checks=8
+
+# tree-sitter-carve 0.1.11 captures the `+` as an operator (#577) and reads a
+# quoted item's `+` at its content column as a marker (#584). The old pin fails
+# the second row: it parsed that `+` as paragraph text.
+run_case 'the continuation marker is an operator' \
+  $'- a\n+\n> q\n' 1 0 operator -
+run_case 'a quoted item attaches the block after its +' \
+  $'> - > a\n>   +\n>   b\n' 1 0 operator -
+checks=10
 
 if ((${#fails[@]})); then
   printf 'tree-sitter capture failures:\n'
