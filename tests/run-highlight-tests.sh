@@ -166,6 +166,9 @@ T|:: t\n: +\n- a
 T|: a\n+\n- b
 M|                    - a\n                    +\n                    b
 T|[^a]: +\n- x
+T|  > +\nq
+T|> > +\n  > q
+T|- a\n  > > +\n    > q
 T|[^a]: +\n  > q
 T|```\n+\n```
 T|- a\n  ```\n  +\n  x\n  ```
