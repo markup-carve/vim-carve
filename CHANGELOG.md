@@ -17,6 +17,8 @@ Releases before 0.1.6 are described on the
   glued quote prefixes `>+`, `>>+`, `> >+` and `>> +` are text (#80).
 - A quoted item's `+` is highlighted two and three quotes deep and after
   blank quote lines (#81).
+- A quote's first-block `+` followed by an indented quote line, and an
+  indented `> +` on the first line, stay text (#84).
 - A checkbox is a task marker only when content follows it (#77).
 - Classic Vim emphasis highlighting is faster on dense text (#71, #78).
 - Neovim injects the language of a `{table}` csv or tsv fence (#75).

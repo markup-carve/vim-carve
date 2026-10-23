@@ -190,12 +190,18 @@ execute 'syntax match carveContinuation /\%(^[ \t]*' . s:cm_chain . s:cm_item . 
 execute 'syntax match carveContinuation /\%(^[ \t]*\%(' . s:cm_item . '\|: \+\)' . s:cm_chain . '> \)\@<=+' . s:cm_flush . '/ containedin=' . s:item_names . ',carveDefBody'
 " A quote K deep opens on this line when the line above is quoted less deep;
 " the next line may keep fewer than K markers.
+" The follower's quote markers start at column 0: a quote's first-block `+`
+" refuses a follower at an intervening or indented column (carve#3529). At
+" document level an indented `>` line is a paragraph, so the opener is flush.
 for s:k in range(1, 3)
-  let s:deep = '[ \t]*>\%( >\)\{' . (s:k - 1) . '}'
-  let s:pat = '\%(\%(\%^\|^\%(' . s:deep . '\)\@!.*\n\)' . s:deep . ' \)\@<=+' . s:cm_next
-        \ . '\%([ \t]*>\%( \|$\)\)\{,' . (s:k - 1) . '}\%([ \t]\|>\%( \|$\)\|' . s:marker . ' \)\@!\S'
-  execute 'syntax match carveContinuation /' . s:pat . '/ contained containedin=carveBlockquote'
-  execute 'syntax match carveContinuation /' . s:pat . '/'
+  " An indented opener on the first line is in no item, so it is no quote.
+  let s:inq = ' contained containedin=carveBlockquote'
+  for [s:lead, s:in, s:top] in [['', s:inq, '\%^\|'], ['[ \t]\+', s:inq, ''], ['', '', '\%^\|']]
+    let s:deep = s:lead . '>\%( >\)\{' . (s:k - 1) . '}'
+    let s:pat = '\%(\%(' . s:top . '^\%(' . s:deep . '\)\@!.*\n\)' . s:deep . ' \)\@<=+' . s:cm_next
+          \ . '\%(>\%( \|$\)\)\{,' . (s:k - 1) . '}\%([ \t]\|>\%( \|$\)\|' . s:marker . ' \)\@!\S'
+    execute 'syntax match carveContinuation /' . s:pat . '/' . s:in
+  endfor
 endfor
 execute 'syntax match carveContinuation /\%(^\%([ \t]*> \)*::\= .*\n[ \t]*' . s:cm_chain . ': \+\)\@<=+\ze[ \t]*\n\%([ \t]*\n\|' . s:marker . ' \)\@!/ containedin=carveDefBody'
 syntax match carveFootContinuation /\%(^\[\^[^]]\+\]: \+\)\@<=+\ze[ \t]*\n\%([ \t]\|[-*] \|\%(\d\+\|\a\|[ivxlcdmIVXLCDM]\+\)[.)] \|\. \)\@!\S/ contained
