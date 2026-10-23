@@ -19,6 +19,11 @@ Releases before 0.1.6 are described on the
   blank quote lines (#81).
 - A quote's first-block `+` followed by an indented quote line, and an
   indented `> +` on the first line, stay text (#84).
+- Classic Vim highlights the `+` of an indented container: a quote, quoted
+  quote or description opened in an item, an item opened after another
+  marker (`- - x`), a tab-indented item, and a first-block `- > +` whose
+  follower sits at column 0, the line's indent or the quote's column. A
+  description's `: +` above a column-0 list is a marker (#85).
 - A checkbox is a task marker only when content follows it (#77).
 - Classic Vim emphasis highlighting is faster on dense text (#71, #78).
 - Neovim injects the language of a `{table}` csv or tsv fence (#75).

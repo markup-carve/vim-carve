@@ -124,6 +124,45 @@ M|- > +\nflush
 M|- - +\nflush
 M|:: t\n: +\nflush
 M|[^a]: +\nflush
+M|> - a\n>   - b\n> +\n> para
+M|- a\n  > q\n  +\n  para
+M|- x\n  - y\n    - a\n\t+\n\t> q
+M|- > +\n> q
+M|- > a\n  +\n  b
+M|- x\n  - > a\n    +\n    b
+M|- a\n  - > +\n  b
+M|- a\n  - > +\n  # h
+M|- - ```\n\n  +\n  x
+M|- - a\n  +\n  x
+M|:: t\n:  d\n   :: term\n   :  detail\n   +\n   para
+M|- a\n  > +\n  q
+M|1. a\n   - b\n     > +\n     | c |
+M|- > > q\n  > +\n  > > r
+M|:: t\n: > > q\n  > +\n  > > r
+M|- a\n  - - > +\n  b
+M|- > > +\n> q
+M|> - > +\n# h
+M|> - a\n> - > +\n# h
+M|- - > +\n    b
+M|- > > +\n    b
+T|- - > +\n  b
+T|- > +\n b
+T|- a\n  - > +\n b
+T|- a\n  - > +\n   b
+T|- > > +\n  > q
+T|> - > +\n- s
+T|- a\n  > q\n  +\n  - b
+T|- a\n  > q\n  +\n   para
+T|- - a\n  +\n- b
+T|- - a\n  +\n   x
+T|- - ```\n\n  +\ntail
+T|> - a\n>   - b\n> +\n> - c
+T|> - a\n>   - b\n> +
+T|- > a\n  +\n\n  b
+T|- a\n  > +\n   q
+T|- a\n  > +\n q
+T|- x\n  - y\n    - a\n\t+\n- b
+T|- - a\n  - b\n  +\n- c
 T|- a\n  +\n  b
 T|- a\n    +\n    b
 T|- a\n  - b\n  +\npara
@@ -162,7 +201,7 @@ T|>>+\nflush
 T|> >+\nflush
 T|>> +\nflush
 T|> - a\n>+\n> para
-T|:: t\n: +\n- a
+M|:: t\n: +\n- a
 T|: a\n+\n- b
 M|                    - a\n                    +\n                    b
 T|[^a]: +\n- x

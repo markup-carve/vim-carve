@@ -177,6 +177,12 @@ for s:k in range(1, 3)
   execute 'syntax region carveQuotedItemGap start=/\%(^' . s:qp . s:marker . ' \+\S.*\n\)\@<=\ze' . s:qblank . '/'
         \ . ' matchgroup=carveContinuation end=/^' . s:qp . '\zs+\ze' . s:qplus[strlen(s:qp) + 1:] . '/'
         \ . ' end=/^\ze\%(' . s:qblank . '\|' . s:qplus . '\)\@!/'
+  " Deeper lines of the item (`>   - b`) keep it open the same way.
+  let s:qdeep = s:qp . '[ \t]\+\S'
+  execute 'syntax region carveQuotedItemDeep transparent keepend contains=TOP'
+        \ . ' start=/^\%(' . s:qp . s:marker . ' \+\S.*\n\)\@<=\ze' . s:qdeep . '/'
+        \ . ' matchgroup=carveContinuation end=/^' . s:qp . '\zs+\ze' . s:qplus[strlen(s:qp) + 1:] . '/'
+        \ . ' end=/^\ze\%(' . s:qblank . '\|' . s:qdeep . '\|' . s:qplus . '\)\@!/'
 endfor
 " The FIRST-BLOCK forms. After an item opener the `+` is always a marker; after
 " `[^a]: ` or on the first line of a quote the next line must be flush text,
@@ -187,7 +193,7 @@ let s:cm_item = '\%(' . s:marker . ' \+\%(\[[ xX\-_>?]\] \+\)\=\)'
 let s:cm_chain = '\%(> \|' . s:cm_item . '\|: \+\)*'
 let s:cm_flush = s:cm_next . '\%([ \t>]\|' . s:marker . ' \)\@!\S'
 execute 'syntax match carveContinuation /\%(^[ \t]*' . s:cm_chain . s:cm_item . '\)\@<=+[ \t]*$/ containedin=' . s:item_names . ',carveListTask,carveBlockquote'
-execute 'syntax match carveContinuation /\%(^[ \t]*\%(' . s:cm_item . '\|: \+\)' . s:cm_chain . '> \)\@<=+' . s:cm_flush . '/ containedin=' . s:item_names . ',carveDefBody'
+execute 'syntax match carveContinuation /\%(^[ \t]*\%(> \)*\%(' . s:cm_item . '\|: \+\)' . s:cm_chain . '> \)\@<=+' . s:cm_next . '\%([ \t]\|' . s:marker . ' \)\@!\S/ containedin=' . s:item_names . ',carveDefBody,carveBlockquote'
 " A quote K deep opens on this line when the line above is quoted less deep;
 " the next line may keep fewer than K markers.
 " The follower's quote markers start at column 0: a quote's first-block `+`
@@ -203,7 +209,37 @@ for s:k in range(1, 3)
     execute 'syntax match carveContinuation /' . s:pat . '/' . s:in
   endfor
 endfor
-execute 'syntax match carveContinuation /\%(^\%([ \t]*> \)*::\= .*\n[ \t]*' . s:cm_chain . ': \+\)\@<=+\ze[ \t]*\n\%([ \t]*\n\|' . s:marker . ' \)\@!/ containedin=carveDefBody'
+execute 'syntax match carveContinuation /\%(^\%([ \t]*> \)*::\= .*\n[ \t]*' . s:cm_chain . ': \+\)\@<=+\ze[ \t]*\n\%([ \t]*\n\)\@!/ containedin=carveDefBody'
+" Indented containers: the `+` and its follower sit at column N, the
+" container's column on the line above (`\%Nv` is reached through any marker
+" chain). A quote opened at N, a description at N, the first-block `+` of an
+" item's quote with its follower at the line's indent or the quote's column.
+let s:cm_in = ' containedin=' . s:item_names . ',carveBlockquote,carveDefList,carveDefBody'
+let s:cm_lead = '^[ \t]*\%(\%(' . s:marker . '\|::\=\) \+\)*'
+for s:n in range(1, 8)
+  let s:col = '\%' . (s:n + 1) . 'v'
+  let s:at = ' \{' . s:n . '}'
+  let s:fl = s:cm_next . s:at . '\%([ \t>]\|' . s:marker . ' \)\@!\S/' . s:cm_in
+  for s:q in ['', '> ']
+    execute 'syntax match carveContinuation /+\%(' . s:cm_lead . s:col . s:q . '>\%( \|$\).*\n' . s:at . s:q . '+\)\@<='
+          \ . s:cm_next . s:at . s:q . s:cm_noitem . '/' . s:cm_in
+  endfor
+  execute 'syntax match carveContinuation /+\%(^' . s:at . ':\s\+\S.*\n' . s:at . '+\)\@<=' . s:cm_next . s:at . '\S/' . s:cm_in
+  let s:deep = s:at . '>\%( >\)*'
+  execute 'syntax match carveContinuation /+\%(^\%(' . s:deep . ' \)\@!.*\n' . s:deep . ' +\)\@<=' . s:fl
+  execute 'syntax match carveContinuation /+\%(^' . s:at . '\%(' . s:cm_item . '\|: \+\)' . s:cm_chain . '> +\)\@<=' . s:fl
+  execute 'syntax match carveContinuation /+\%(^[ \t]*\%(' . s:cm_item . '\|: \+\)' . s:cm_chain . s:col . '> +\)\@<=' . s:fl
+endfor
+" An item opened after another marker on its line (`- - x`) has no region; a
+" region from its marker over blank or deeper lines finds its `+`.
+for s:n in range(2, 8)
+  let s:at = ' \{' . s:n . '}'
+  let s:gap = '\%([ \t]*$\| \{' . (s:n + 1) . '}\)'
+  execute 'syntax region carveSameLineItemGap transparent keepend contains=TOP'
+        \ . ' start=/^[ \t]*\%(' . s:cm_item . '\)\+\%' . (s:n + 1) . 'v\ze' . s:marker . ' \+\S/'
+        \ . ' matchgroup=carveContinuation end=/^' . s:at . '\zs+' . s:cm_next . s:at . s:cm_noitem . '/'
+        \ . ' end=/^\ze\%(' . s:gap . '\|' . s:at . '+' . s:cm_next . s:at . s:cm_noitem . '\)\@!/'
+endfor
 syntax match carveFootContinuation /\%(^\[\^[^]]\+\]: \+\)\@<=+\ze[ \t]*\n\%([ \t]\|[-*] \|\%(\d\+\|\a\|[ivxlcdmIVXLCDM]\+\)[.)] \|\. \)\@!\S/ contained
 
 " ---------------------------------------------------------------------------
@@ -579,6 +615,12 @@ for s:n in s:item_cols
         \ . ' transparent contains=TOP,carveParagraph,' . join(map(range(0, s:n), '"carveListItem" . v:val'), ',')
   execute 'syntax match carveContinuation /^' . s:in . '\zs+' . s:cm_next . s:in . s:cm_noitem . '/'
         \ . ' contained containedin=carveListItem' . s:n
+  if s:n > 0 && s:n % 4 == 0
+    " A tab stop every 4 columns: `\t+` is at column 4.
+    let s:tab = '\t\{' . (s:n / 4) . '}'
+    execute 'syntax match carveContinuation /^' . s:tab . '\zs+' . s:cm_next . s:tab . s:cm_noitem . '/'
+          \ . ' contained containedin=carveListItem' . s:n
+  endif
 endfor
 
 " Indented blocks that only open inside a list item: at the top level an
