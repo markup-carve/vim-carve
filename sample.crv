@@ -23,7 +23,7 @@ A [span]{.fancy} and an :youtube[dQw4] extension. Social: @user and #tag.
 {#styled .class key=value}
 A block with attributes attached above.
 
----
+***
 
 - unordered item
 * star item
@@ -70,8 +70,8 @@ nested warning
 :::
 ::::
 
-|= Name |=> Age |=~ City |
-| Alice |< 30   | NYC    |
+|= Name |={>} Age |={~} City |
+| Alice |{<} 30  | NYC     |
 ^ Table caption
 
 | Name  | Age |

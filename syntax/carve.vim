@@ -38,7 +38,8 @@ syntax keyword carveTodo contained TODO FIXME XXX NOTE
 " Line shapes shared by the paragraph and list item contexts below.
 " ---------------------------------------------------------------------------
 " A list marker, with an optional glued attribute block (`-{.c} item`).
-let s:marker = '\%(\%([-*]\|\%(\d\+\|\a\|[ivxlcdmIVXLCDM]\+\)[.)]\|\.\)\%({[^}]*}\)\=\)'
+" A letter or roman marker with a dot needs two spaces (carve#4828).
+let s:marker = '\%(\%([-*]\|\d\+[.)]\|\%(\a\|[ivxlcdmIVXLCDM]\+\))\|\.\)\%({[^}]*}\)\=\|\%(\a\|[ivxlcdmIVXLCDM]\+\)\.\%({[^}]*}\)\=\%(  \)\@=\)'
 let s:marker_line = '[ \t]*' . s:marker . ' \+\S'
 " A list item region per marker column (`carveListItemN`, see below).
 let s:item_cols = range(0, 32)
@@ -106,7 +107,7 @@ let s:quoted = '\%(^\%([ \t]*>\%( \|$\)\)\+[ \t]*\)\@<='
 execute 'syntax match carveQuotedHeading /' . s:quoted . '#\{1,6} \+\S.*$/ contained contains=@carveInline,carveLineVerbatim,carveTrailingComment,@Spell'
 execute 'syntax match carveQuotedListMarker /' . s:quoted . s:marker . '\ze \+\S/ contained'
 execute 'syntax match carveQuotedDefTerm /' . s:quoted . ':: \+\S.*$/ contained contains=@carveInline,@Spell'
-execute 'syntax match carveQuotedTable /' . s:quoted . '|.*|\s*$/ contained contains=carveTableSep,carveTableHeader,@carveInline,@Spell'
+execute 'syntax match carveQuotedTable /' . s:quoted . '|.*|\s*$/ contained contains=carveTableSep,carveTableHeader,carveTableCellAttr,@carveInline,@Spell'
 execute 'syntax match carveQuotedDivFence /' . s:quoted . ':\{3,}.*$/ contained contains=carveAdmonition,carveDivTitle,carveDivLabel'
 syntax cluster carveQuoted contains=carveQuotedHeading,carveQuotedListMarker,carveQuotedDefTerm,carveQuotedTable,carveQuotedDivFence
 
@@ -129,7 +130,7 @@ syntax cluster carveQuoted contains=carveQuotedHeading,carveQuotedListMarker,car
 " calls prose, and stole the table continuation row's marker - the one `+` line
 " that does open something (markup-carve/vim-carve#31).
 syntax match carveListBullet /^\s*[-*]\%({[^}]*}\)\= \+\S\@=/me=e-1 contains=carveInlineAttr
-syntax match carveListNumber /^\s*\%(\%(\d\+\|[a-zA-Z]\|[ivxlcdmIVXLCDM]\+\)[.)]\|\.\)\%({[^}]*}\)\= \+\S\@=/me=e-1 contains=carveInlineAttr
+syntax match carveListNumber /^\s*\%(\%(\d\+[.)]\|\%(\a\|[ivxlcdmIVXLCDM]\+\))\|\.\)\%({[^}]*}\)\= \+\|\%(\a\|[ivxlcdmIVXLCDM]\+\)\.\%({[^}]*}\)\=  \+\)\S\@=/me=e-1 contains=carveInlineAttr
 syntax match carveListTask   /^\s*[-*] \+\[[ xX\-_\/!>?]\]\ze \+[ \t]*\S/
       \ contains=carveListBullet,carveTaskMark
 syntax match carveTaskMark   /\[[ xX\-_\/!>?]\]/ contained
@@ -240,7 +241,7 @@ for s:n in range(2, 8)
         \ . ' matchgroup=carveContinuation end=/^' . s:at . '\zs+' . s:cm_next . s:at . s:cm_noitem . '/'
         \ . ' end=/^\ze\%(' . s:gap . '\|' . s:at . '+' . s:cm_next . s:at . s:cm_noitem . '\)\@!/'
 endfor
-syntax match carveFootContinuation /\%(^\[\^[^]]\+\]: \+\)\@<=+\ze[ \t]*\n\%([ \t]\|[-*] \|\%(\d\+\|\a\|[ivxlcdmIVXLCDM]\+\)[.)] \|\. \)\@!\S/ contained
+syntax match carveFootContinuation /\%(^\[\^[^]]\+\]: \+\)\@<=+\ze[ \t]*\n\%([ \t]\|[-*] \|\d\+[.)] \|\%(\a\|[ivxlcdmIVXLCDM]\+\)) \|\%(\a\|[ivxlcdmIVXLCDM]\+\)\.  \|\. \)\@!\S/ contained
 
 " ---------------------------------------------------------------------------
 " Math spans: inline $`..` and display $$`..`  (the ```math BLOCK is
@@ -329,12 +330,15 @@ syntax region carveFigureGroup
 " Tables: | cell | with |= headers, alignment and span markers.
 " ---------------------------------------------------------------------------
 " A row ends in a pipe; `| a | b` without one is prose.
-syntax match carveTable /^\s*|.*|\s*$/ contains=carveTableSep,carveTableHeader,@carveInline,@Spell
+syntax match carveTable /^\s*|.*|\s*$/ contains=carveTableSep,carveTableHeader,carveTableCellAttr,@carveInline,@Spell
       \ nextgroup=carveCaption skipnl skipempty
+syntax match carveTableSep    /[|]/ contained
 " The header marker is defined after the pipe so it wins at the same column;
 " it also keeps `=` from opening a highlight across `|=< a |=> b |`.
-syntax match carveTableSep    /[|]/ contained
 syntax match carveTableHeader /|=[<>~]\?/ contained
+" The cell's attribute block is glued to `|` or `|=`; alignment is its first
+" token (`|={>} a |`, `|{< .x} b |`, carve#5091). The glued `|=<` is deprecated.
+syntax match carveTableCellAttr /\%(|=\=\)\@<={[^}]*}/ contained
 syntax match carveTableRule   /^\s*|[-=:| ]*|\s*$/ nextgroup=carveCaption skipnl skipempty
 
 " A TABLE CONTINUATION ROW: `+` then cells, ending in a pipe
@@ -344,7 +348,7 @@ syntax match carveTableRule   /^\s*|[-=:| ]*|\s*$/ nextgroup=carveCaption skipnl
 " the two never race, and it carries the same contained groups so its cells and
 " pipes highlight the way every other row's do.
 syntax match carveTableContinuation /^\s*+.*|\s*$/
-      \ contains=carveTableSep,carveTableHeader,@carveInline,@Spell
+      \ contains=carveTableSep,carveTableHeader,carveTableCellAttr,@carveInline,@Spell
       \ nextgroup=carveCaption skipnl skipempty
 
 " ---------------------------------------------------------------------------
@@ -503,8 +507,9 @@ syntax region carveCitation matchgroup=carveCitationDelim
 syntax match carveCallout /<\d\+>/
 
 " Mentions and tags.
-syntax match carveMention /\%(^\|\s\)\zs@[[:alnum:]_][[:alnum:]_-]*/
-syntax match carveTag     /\%(^\|\s\)\zs#[[:alnum:]_][[:alnum:]_-]*/
+" A name holds an ASCII letter: `#123` and `@5` are text (carve#4809).
+syntax match carveMention /\%(^\|\s\)\zs@\%([[:alnum:]_-]*\a\)\@=[[:alnum:]_][[:alnum:]_-]*/
+syntax match carveTag     /\%(^\|\s\)\zs#\%([[:alnum:]_-]*\a\)\@=[[:alnum:]_][[:alnum:]_-]*/
 
 " RESERVED INCLUDE DIRECTIVE, `{{ path #section @opt:value }}` (spec PART 9
 " S19, markup-carve/carve#291). The core leaves it literal, but a highlighter
@@ -561,8 +566,9 @@ syntax cluster carveIncludeParts contains=carveIncludePath,carveIncludeSection,c
 syntax match carveSymbol  /\%(^\|\s\|[([]\)\zs:[[:alnum:]+-][[:alnum:]_+-]*:/
 
 " Smart typography.
-" Longest first. `=>` is literal, and only the lower-case (c) (r) (tm) convert.
-syntax match carveTypography /{--}\|<-->\|<--\|-->\|<=>\|<==\|==>\|---\|--\|\.\.\.\|<->\|<-\|->\|<=\|>=\|!=\|+-\|(c)\|(r)\|(tm)/
+" Longest first. An arrow needs its exact hyphen run (`a--->b` is a dash);
+" `=>`, `->`, `<-`, `<->`, `(c)` and `(r)` stay text (carve#4815, #4808).
+syntax match carveTypography /{--}\|<-->\|<--\%(-\)\@!\|\%(-\)\@<!-->\|<=>\|<==\|==>\|---\|--\|\.\.\.\|<=\|>=\|!=\|+-\|(tm)/
 
 " CriticMarkup: {+ins+} {-del-} {~old~>new~} {#comment#}
 syntax region carveCriticIns matchgroup=carveCriticDelim start=/{+/ end=/+}/ oneline keepend
@@ -660,8 +666,8 @@ syntax match carveRefDef   /^\s*\[[^^][^]]*\]: .*$/ contains=carveRefLabel,carve
 syntax match carveFootDef  /^\s*\[\^[^]]\+\]: .*$/  contains=carveFootRef,carveFootContinuation,@carveInline
 syntax match carveAbbrDef  /^\s*\*\[[^]]\+\]: .*$/  contains=carveAbbrLabel
 
-" Thematic break: --- *** ___
-syntax match carveRule /^\s*\%(-\{3,}\|\*\{3,}\|_\{3,}\)\s*$/
+" Thematic break: --- *** ___, and `- - -` / `* * *` with single spaces (carve#4814).
+syntax match carveRule /^\s*\%(-\{3,}\|\*\{3,}\|_\{3,}\|-\%( -\)\{2,}\|\*\%( \*\)\{2,}\)\s*$/
 
 " Fenced code blocks: ```lang "Header" [Label] / ~~~
 "
@@ -804,9 +810,7 @@ unlet! s:run s:more
 syntax match carveQuotePrefix /^[ \t]*>\%( [ \t]*>\)*\%( \|$\)/ contained
 
 " Frontmatter, only at the very top of the file: --- / ---toml / ---json.
-" It is defined by s:refresh_frontmatter() at the end of this file, and only
-" when a closing `---` exists: without one the opening dashes are a thematic
-" break and the lines below them are ordinary Carve.
+" It is defined at the end of this file.
 
 " ===========================================================================
 " Highlight links to standard groups (colorscheme-agnostic).
@@ -871,6 +875,7 @@ highlight default link carveDivLabel       Identifier
 
 highlight default link carveTable          Normal
 highlight default link carveTableHeader    Title
+highlight default link carveTableCellAttr  PreProc
 highlight default link carveTableSep       Delimiter
 highlight default link carveTableContinuation Normal
 highlight default link carveTableRule      Delimiter
@@ -965,44 +970,10 @@ syntax region carveLineVerbatim matchgroup=carveDelim
       \ end=/\%(`\)\@<!\z1\%(`\)\@!\|$/ contained keepend contains=@NoSpell
 highlight default link carveLineVerbatim String
 
-" A syntax pattern cannot look ahead for the closing `---` of a frontmatter
-" block, so the buffer is scanned for it and the region is defined only when
-" it exists. Refreshed after edits.
-let s:fm_open = '^---\%( \=\%(toml\|json\|yaml\|yml\)\)\=[ \t]*$'
-function! s:refresh_frontmatter() abort
-  if index(split(&syntax, '\.'), 'carve') < 0 || !exists('g:syntax_on')
-        \ || (exists('b:carve_frontmatter') && empty(get(b:, 'current_syntax', '')))
-    return
-  endif
-  let l:closed = 0
-  if getline(1) =~# s:fm_open
-    let l:view = winsaveview()
-    call cursor(1, 1)
-    let l:closed = search('^---[ \t]*$', 'nW') > 0
-    call winrestview(l:view)
-  endif
-  if get(b:, 'carve_frontmatter', -1) == l:closed
-    return
-  endif
-  if get(b:, 'carve_frontmatter', 0)
-    syntax clear carveFrontmatter
-  endif
-  let b:carve_frontmatter = l:closed
-  if l:closed
-    " Defined last, because carveRule claims the same three dashes.
-    execute 'syntax region carveFrontmatter matchgroup=carveFrontmatterFence'
-          \ . ' start=/\%^' . s:fm_open[1:] . '/ end=/^---[ \t]*$/ keepend contains=@NoSpell'
-  endif
-endfunction
-
-if index(split(&syntax, '\.'), 'carve') >= 0
-  augroup carve_frontmatter
-    autocmd! * <buffer>
-    autocmd TextChanged,TextChangedI,InsertLeave <buffer> call <SID>refresh_frontmatter()
-  augroup END
-  unlet! b:carve_frontmatter
-  call s:refresh_frontmatter()
-endif
+" Defined last, because carveRule claims the same three dashes. Without a
+" closer the frontmatter runs to the end of the buffer (carve#5016).
+syntax region carveFrontmatter matchgroup=carveFrontmatterFence
+      \ start=/\%^---\%( \=[[:alnum:]]\+\)\=[ \t]*$/ end=/^---[ \t]*$/ keepend contains=@NoSpell
 
 let b:current_syntax = 'carve'
 

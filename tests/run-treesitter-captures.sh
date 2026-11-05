@@ -143,7 +143,19 @@ run_case 'the continuation marker is an operator' \
   $'- a\n+\n> q\n' 1 0 operator -
 run_case 'a quoted item attaches the block after its +' \
   $'> - > a\n>   +\n>   b\n' 1 0 operator -
-checks=10
+
+# The next carve release's readings (tree-sitter-carve#639). The 0.1.13 pin
+# reads `* * *` as list markers, `A. Smith` as a list and an unclosed `---` as
+# a thematic break.
+run_case 'a spaced star run is a thematic break' \
+  $'a\n* * *\n' 1 0 string.special -
+run_case 'a letter marker with one space is no list marker' \
+  $'A. Smith wrote\n' 0 0 - -
+run_case 'a letter marker with two spaces is a list marker' \
+  $'a.  item\n' 0 0 markup.list -
+run_case 'an unclosed first-line --- is frontmatter' \
+  $'---\ntitle: t\n\nx\n' 0 0 punctuation.delimiter -
+checks=14
 
 if ((${#fails[@]})); then
   printf 'tree-sitter capture failures:\n'

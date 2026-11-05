@@ -26,7 +26,8 @@ upgrade for Neovim users who install the parser.
   footnotes, lists and task items, blockquotes and captions, fenced code (with
   language, `"Header"`, `[Label]`), raw passthrough blocks (` ```=html `), divs
   and admonitions, line blocks (`::: |`) and local hard-break blocks
-  (`::: \`), block/inline attributes, tables, math (inline `$\`..\``, display
+  (`::: \`), block/inline attributes, tables (with braced cell alignment
+  `|={>} a |`; the 0.1.13 `|=>` is still highlighted), math (inline `$\`..\``, display
   `$$\`..\``, ` ```math `), frontmatter, comments (`%%`, `%%% ... %%%`,
   `{% ... %}`), mentions, tags, smart typography, CriticMarkup, and the
   reserved include directive (`{{ path #section @opt:value }}`).
@@ -51,7 +52,8 @@ upgrade for Neovim users who install the parser.
   colored only below a block that takes one (table, code block, quote,
   image or display math line, figure group), and headings, list markers,
   definitions, tables, container fences and fenced code are recognized inside
-  `> ` quotes. Frontmatter needs its closing `---`. Not covered: a caption
+  `> ` quotes. Frontmatter without a closing `---` runs to the end of the
+  file. Not covered: a caption
   below a `::: >` fenced quote, a list after an indented paragraph line, and
   a caption separated from its block by more than one blank line.
 - `commentstring=%% %s` and a minimal list/quote indent.
