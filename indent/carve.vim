@@ -32,6 +32,11 @@ function! GetCarveIndent() abort
     return prev_indent
   endif
 
+  " A spaced thematic break (`- - -`, `* * *`) is not a list item.
+  if prev =~# '^\s*\%(-\%( -\)\{2,}\|\*\%( \*\)\{2,}\)\s*$'
+    return prev_indent
+  endif
+
   " Continue inside a list item: align the body under the marker text.
   " Markers: `-`, `*`, `1.`, `1)`, `a.`, `iv)`, a bare `.`, each with an
   " optional glued attribute block (`-{.c} item`). `+` is not a bullet, and
