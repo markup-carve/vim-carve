@@ -50,7 +50,9 @@ done < "$here/cases.txt"
 # The checkbox is a task marker only when content follows it on the line.
 for case in '!carveTaskMark|- [ ]' '!carveTaskMark|- [ ]   ' \
             'carveTaskMark|- [ ] done' 'carveTaskMark|- [ ] +' \
-            $'carveTaskMark|- [ ] \tdone' $'!carveTaskMark|- [ ]\tdone'; do
+            $'carveTaskMark|- [ ] \tdone' $'!carveTaskMark|- [ ]\tdone' \
+            'carveTaskMark|- [/] doing' 'carveTaskMark|- [!] blocked' \
+            'carveTaskMark|- [_] open' '!carveTaskMark|- [#] no'; do
   expected="${case%%|*}"
   src="${case#*|}"
   printf '%s\n' "$src" > "$work/case.crv"
