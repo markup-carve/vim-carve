@@ -331,8 +331,10 @@ syntax region carveFigureGroup
 " A row ends in a pipe; `| a | b` without one is prose.
 syntax match carveTable /^\s*|.*|\s*$/ contains=carveTableSep,carveTableHeader,@carveInline,@Spell
       \ nextgroup=carveCaption skipnl skipempty
-syntax match carveTableHeader /|=[<>~]\?/ contained
+" The header marker is defined after the pipe so it wins at the same column;
+" it also keeps `=` from opening a highlight across `|=< a |=> b |`.
 syntax match carveTableSep    /[|]/ contained
+syntax match carveTableHeader /|=[<>~]\?/ contained
 syntax match carveTableRule   /^\s*|[-=:| ]*|\s*$/ nextgroup=carveCaption skipnl skipempty
 
 " A TABLE CONTINUATION ROW: `+` then cells, ending in a pipe
