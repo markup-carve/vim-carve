@@ -1101,3 +1101,11 @@ a --> b ==> c => d (C) (c)
 > ```
 > after *b*
 %%         ^ carveBold
+
+%% A header cell's `|=` marker is the header, and its `=` never opens a
+%% highlight across the row.
+|=< A |=> B |
+%%^^^ carveTableHeader
+%%    ^ carveTable
+%%      ^^^ carveTableHeader
+%%          ^ carveTable

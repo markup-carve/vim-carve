@@ -130,9 +130,9 @@ syntax cluster carveQuoted contains=carveQuotedHeading,carveQuotedListMarker,car
 " that does open something (markup-carve/vim-carve#31).
 syntax match carveListBullet /^\s*[-*]\%({[^}]*}\)\= \+\S\@=/me=e-1 contains=carveInlineAttr
 syntax match carveListNumber /^\s*\%(\%(\d\+\|[a-zA-Z]\|[ivxlcdmIVXLCDM]\+\)[.)]\|\.\)\%({[^}]*}\)\= \+\S\@=/me=e-1 contains=carveInlineAttr
-syntax match carveListTask   /^\s*[-*] \+\[[ xX\-_>?]\]\ze \+[ \t]*\S/
+syntax match carveListTask   /^\s*[-*] \+\[[ xX\-_\/!>?]\]\ze \+[ \t]*\S/
       \ contains=carveListBullet,carveTaskMark
-syntax match carveTaskMark   /\[[ xX\-_>?]\]/ contained
+syntax match carveTaskMark   /\[[ xX\-_\/!>?]\]/ contained
 
 " Definition lists: '::' term then ':' definition.
 syntax match carveDefTerm /^:: \+\S\@=.*$/ contains=@carveInline,@Spell
@@ -189,7 +189,7 @@ endfor
 " not a list and not quoted; after `: ` the line above must be a term and a
 " blank line or a column-0 list below refuses it. Each `>` takes its space:
 " `>+`, `>>+`, `> >+` and `>> +` are no quote lines, so they stay text.
-let s:cm_item = '\%(' . s:marker . ' \+\%(\[[ xX\-_>?]\] \+\)\=\)'
+let s:cm_item = '\%(' . s:marker . ' \+\%(\[[ xX\-_\/!>?]\] \+\)\=\)'
 let s:cm_chain = '\%(> \|' . s:cm_item . '\|: \+\)*'
 let s:cm_flush = s:cm_next . '\%([ \t>]\|' . s:marker . ' \)\@!\S'
 execute 'syntax match carveContinuation /\%(^[ \t]*' . s:cm_chain . s:cm_item . '\)\@<=+[ \t]*$/ containedin=' . s:item_names . ',carveListTask,carveBlockquote'
@@ -331,8 +331,10 @@ syntax region carveFigureGroup
 " A row ends in a pipe; `| a | b` without one is prose.
 syntax match carveTable /^\s*|.*|\s*$/ contains=carveTableSep,carveTableHeader,@carveInline,@Spell
       \ nextgroup=carveCaption skipnl skipempty
-syntax match carveTableHeader /|=[<>~]\?/ contained
+" The header marker is defined after the pipe so it wins at the same column;
+" it also keeps `=` from opening a highlight across `|=< a |=> b |`.
 syntax match carveTableSep    /[|]/ contained
+syntax match carveTableHeader /|=[<>~]\?/ contained
 syntax match carveTableRule   /^\s*|[-=:| ]*|\s*$/ nextgroup=carveCaption skipnl skipempty
 
 " A TABLE CONTINUATION ROW: `+` then cells, ending in a pipe
