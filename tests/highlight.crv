@@ -284,6 +284,17 @@ key: 1
 ___
 %%^ carveRule
 
+%% A `-` or `*` run may space its markers with single spaces (carve#4814).
+- - -
+%%^^^^^ carveRule
+* * *
+%%^^^^^ carveRule
+
+%% A spaced break interrupts a paragraph.
+para
+- - -
+%%^^^^^ carveRule
+
 %% ---------------------------------------------------------------------------
 %% EVERY VERBATIM PAYLOAD IS INERT.
 %%
@@ -1050,13 +1061,24 @@ a `code
 span` b
 %%^^^^ carveCode
 
-%% Arrows: `=>` is literal, `-->` and `==>` convert, upper-case (C) does not.
+%% Arrows: `=>` is literal, `-->` and `==>` convert, (C) and (c) do not
+%% (carve#4808).
 a --> b ==> c => d (C) (c)
 %%  ^^^ carveTypography
 %%        ^^^ carveTypography
 %%              ^^ (none)
 %%                   ^^^ (none)
-%%                       ^^^ carveTypography
+%%                       ^^^ (none)
+
+%% `->`, `<-` and `<->` stay text, and an arrow needs its exact hyphen run:
+%% `a<---b` is `<` and an em dash (carve#4815). (tm) still converts.
+x->y a<-b <-> a<---b (tm)
+%% ^^ (none)
+%%      ^^ (none)
+%%          ^^^ (none)
+%%               ^ (none)
+%%                ^^^ carveTypography
+%%                     ^^^^ carveTypography
 
 %% `%%` opens a comment after a space only.
 50%% off, a	%% tab, and %% hidden
@@ -1109,3 +1131,24 @@ a --> b ==> c => d (C) (c)
 %%    ^ carveTable
 %%      ^^^ carveTableHeader
 %%          ^ carveTable
+
+%% A letter or roman marker with a dot needs two spaces (carve#4828).
+A. Smith wrote
+%%^^ (none)
+
+a.  item
+%%^^ carveListNumber
+
+%% A mention or tag name holds an ASCII letter (carve#4809).
+x @5 #123 @a1 #v2
+%%  ^^ (none)
+%%     ^^^^ (none)
+%%          ^^^ carveMention
+%%              ^^^ carveTag
+
+%% Braced cell alignment (carve#5091): the block is the cell's attributes.
+|={>} Price |={< .x} Item |
+%%^^ carveTableHeader
+%%  ^^^ carveTableCellAttr
+%%              ^^^^^^ carveTableCellAttr
+%%                     ^^^^ carveTable

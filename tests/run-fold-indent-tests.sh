@@ -51,10 +51,13 @@ check_indent() {
 check_indent 'bullet' '- item' 2
 check_indent 'decimal' '1. item' 3
 check_indent 'bare dot' '. item' 2
-check_indent 'letter' 'a. item' 3
+check_indent 'letter' 'a.  item' 4
+check_indent 'letter needs two spaces' 'A. Smith' 0
 check_indent 'roman paren' 'iv) item' 4
 check_indent 'glued attributes' '-{.c} item' 6
 check_indent 'plus is not a bullet' '+ x' 0
+check_indent 'spaced break is not a bullet' '- - -' 0
+check_indent 'spaced star break is not a bullet' '* * *' 0
 
 if ((${#fails[@]})); then
   printf 'fold/indent failures:\n'
