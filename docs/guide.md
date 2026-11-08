@@ -163,6 +163,43 @@ require('carve.lsp').setup({
 `require('carve.lsp').defaults()` returns the table above, for building your own
 config from it instead of calling `setup()`.
 
+## Exporting to Markdown, HTML or PDF (Neovim)
+
+Export comes from carve-lsp, so it needs the language server set up as above.
+Classic Vim and a Neovim without the server have no export. carve-lsp after
+0.1.15 offers three source actions on a `.crv` buffer:
+
+| Action | Writes |
+| ------ | ------ |
+| **Export as Markdown** | `notes.md` next to `notes.crv` |
+| **Export as HTML** | `notes.html` next to `notes.crv` |
+| **Export as PDF** | `notes.pdf` next to `notes.crv` |
+
+Pick one with `:lua vim.lsp.buf.code_action()` (mapped to `gra` from Neovim
+0.11). The Markdown and HTML exports are applied as an edit to a new buffer
+while the `.crv` buffer stays current, so switch to the new buffer before `:w`
+or write both with `:wall`.
+
+**Export as PDF** is run by the server, which writes the file itself. It uses
+`crv2pdf` from [carve-pdf](https://github.com/markup-carve/carve-pdf) when that
+is on `PATH` (clone it and run `make install`); that gives the better page
+layout. Otherwise it prints the rendered HTML with an installed Chrome,
+Chromium or Edge in headless mode. Neither tool comes with carve-lsp. To point
+at a specific executable, set `pdf` in the `settings` option; it is sent to the
+server as `carve.pdf`:
+
+```lua
+require('carve.lsp').setup({
+  settings = {
+    pdf = { crv2pdfPath = '/path/to/crv2pdf', browserPath = '/path/to/chromium' },
+  },
+})
+```
+
+Set only the key you need: a configured `crv2pdfPath` is always used, and
+`browserPath` applies only when no `crv2pdf` is found. A failed export shows
+the tool's error output.
+
 ## Importing Markdown, HTML, Djot or BBCode (Neovim)
 
 `:CarveImport [file]` converts a file to Carve with `carve migrate` and writes
