@@ -176,8 +176,9 @@ Classic Vim and a Neovim without the server have no export. carve-lsp after
 | **Export as PDF** | `notes.pdf` next to `notes.crv` |
 
 Pick one with `:lua vim.lsp.buf.code_action()` (mapped to `gra` from Neovim
-0.11). The Markdown and HTML exports are applied as an edit to a new buffer;
-`:w` writes it.
+0.11). The Markdown and HTML exports are applied as an edit to a new buffer
+while the `.crv` buffer stays current, so switch to the new buffer before `:w`
+or write both with `:wall`.
 
 **Export as PDF** is run by the server, which writes the file itself. It uses
 `crv2pdf` from [carve-pdf](https://github.com/markup-carve/carve-pdf) when that
@@ -195,7 +196,9 @@ require('carve.lsp').setup({
 })
 ```
 
-Both keys are optional. A failed export shows the tool's error output.
+Set only the key you need: a configured `crv2pdfPath` is always used, and
+`browserPath` applies only when no `crv2pdf` is found. A failed export shows
+the tool's error output.
 
 ## Importing Markdown, HTML, Djot or BBCode (Neovim)
 
