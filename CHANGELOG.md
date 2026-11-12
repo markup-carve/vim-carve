@@ -8,6 +8,24 @@ Releases before 0.1.6 are described on the
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-11-12
+
+Classic Vim and the Neovim parser follow the Carve 0.1.14 readings.
+
+### Fixes
+
+- Progress `[/]` and blocked `[!]` task states are highlighted, and a continuation `+` after such an item is recognized (#88).
+- A native `|=` header marker takes the header color instead of opening a highlight span across the cell (#88).
+- A spaced thematic break ends a paragraph and is not read as a list marker (#89).
+
+### Improvements
+
+- Classic Vim follows the Carve 0.1.14 readings: braced cell alignment (`|={>}`), spaced thematic breaks, frontmatter without a closer runs to the end of the buffer, two spaces after a letter or roman dot marker, `(c)`, `(r)`, `->`, `<-` and `<->` stay text, and mention and tag names need an ASCII letter (#89).
+- `:TSInstall carve` builds tree-sitter-carve main `24073c0`, which carries the Carve 0.1.14 readings (#88, #89, #94).
+- The guide documents the carve-lsp export actions in Neovim, including Export as PDF (#91).
+
+**Full Changelog**: https://github.com/markup-carve/vim-carve/compare/0.1.8...0.1.9
+
 ## [0.1.8] - 2026-10-23
 
 ### Fixed
