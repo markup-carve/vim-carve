@@ -2,16 +2,22 @@
 title: Carve Sample
 tags: [carve, markup, demo]
 ---
-
 %% This is a line comment.
 
-# Heading 1
-## Heading 2
-### Heading 3
-###### Heading 6
+= Heading 1
 
-A paragraph with /italic/, *bold*, /*bold italic*/, _underline_, ~strike~,
-=highlight=, {^super^}, {,sub,} and `inline code`. An escape: \*literal\*.
+== Heading 2
+
+=== Heading 3
+
+==== Heading 4
+
+===== Heading 5
+
+====== Heading 6
+
+A paragraph with /italic/, *bold*, */bold italic/*, {_underline_}, {~strike~},
+{=highlight=}, {^super^}, {,sub,} and `inline code`. An escape: \*literal*.
 Smart typography: -- --- ... -> (c) (tm). Hard break at end:\
 
 Links: [text](https://example.com), autolink <https://example.com>,
@@ -26,24 +32,27 @@ A block with attributes attached above.
 ***
 
 - unordered item
+
 * star item
+
 1. ordered item
-. bare-dot item, continuing the same list
-a. alpha item
+2. bare-dot item, continuing the same list
+   a\. alpha item
+
 - [ ] task to do
 - [x] task done
 - [?] maybe
 
 :: term
-:  definition body
+: definition body
 
 > blockquote line one
 > blockquote line two
 ^ Attribution
 
 > quoted block
-+
-- list now inside the quote
+>
+> - list now inside the quote
 
 ```lua "Example" [tab-a]
 local x = 1
@@ -71,22 +80,23 @@ nested warning
 ::::
 
 |= Name |={>} Age |={~} City |
-| Alice |{<} 30  | NYC     |
+| Alice |{<} 30 | NYC |
 ^ Table caption
 
-| Name  | Age |
-|-------|----:|
-| Bob   |  42 |
+|= Name |={>} Age |
+| Bob | 42 |
 
 %%%
 A fenced block comment
 spanning multiple lines.
 %%%
 
-CriticMarkup: {+inserted+} {-deleted-} {~old~>new~} {#a comment#}.
+CriticMarkup: {+inserted+} {-deleted-} {-old-}{+new+} {#a comment#}.
 
 Intraword braces: H{,2,}O and mc{^2^}.
 
 [Page Name]: https://example.com/page
+
 [^1]: The footnote body text.
+
 *[HTML]: HyperText Markup Language

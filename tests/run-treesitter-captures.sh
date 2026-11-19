@@ -34,7 +34,8 @@ if [[ -z "$upstream" ]]; then
   fi
   git clone --quiet https://github.com/markup-carve/tree-sitter-carve "$work/ts"
   git -C "$work/ts" checkout --quiet "$rev"
-  upstream="$work/ts"
+  location="$(sed -n "s/.*install_location = '\([^']*\)'.*/\1/p" "$root/lua/carve/init.lua" | head -n1)"
+  upstream="$work/ts${location:+/$location}"
 fi
 
 # The tree-sitter CLI caches the built library by LANGUAGE NAME, keyed on the
@@ -49,6 +50,11 @@ cp -R "$upstream/src" "$parser/src"
 for meta in grammar.js package.json tree-sitter.json; do
   [[ -f "$upstream/$meta" ]] && cp "$upstream/$meta" "$parser/$meta"
 done
+# The v2/ grammar ships no package.json; the CLI reads --scope from one.
+[[ -f "$parser/package.json" ]] || cat > "$parser/package.json" <<'JSON'
+{"name": "tree-sitter-carve2", "version": "0.0.0",
+ "tree-sitter": [{"scope": "text.carve", "file-types": ["crv"]}]}
+JSON
 touch "$parser/src/"*.c
 export XDG_CACHE_HOME="$work/cache"
 mkdir -p "$work/config/tree-sitter"
@@ -73,6 +79,8 @@ run_case() {
     # A marker node that takes its line ending ends at column 0 of the next row.
     [[ "$erow" == "$row" || ( "$erow" == "$((row + 1))" && "$ecol" == 0 ) ]] || continue
     [[ "$capture" =~ $not_a_color ]] && continue
+    # A capture named with a leading underscore is private: Neovim colors nothing.
+    [[ "$capture" == _* ]] && continue
     got="$capture"
     got_end="$ecol"
   done < <(printf '%s\n' "$out" | sed -n \
@@ -139,23 +147,39 @@ run_case 'control: a tag outside a directive is still a tag' \
 # tree-sitter-carve 0.1.11 captures the `+` as an operator (#577) and reads a
 # quoted item's `+` at its content column as a marker (#584). The old pin fails
 # the second row: it parsed that `+` as paragraph text.
-run_case 'the continuation marker is an operator' \
-  $'- a\n+\n> q\n' 1 0 operator -
-run_case 'a quoted item attaches the block after its +' \
-  $'> - > a\n>   +\n>   b\n' 1 0 operator -
+#
+# Carve 0.2 makes the lone `+` text (U-014 to U-017), so both rows now assert
+# that nothing colors it.
+run_case 'the continuation marker is text in 0.2' \
+  $'- a\n+\n> q\n' 1 0 - -
+run_case 'a quoted item does not attach the block after its +' \
+  $'> - > a\n>   +\n>   b\n' 1 4 - -
 
 # The next carve release's readings (tree-sitter-carve#639). The 0.1.13 pin
 # reads `* * *` as list markers, `A. Smith` as a list and an unclosed `---` as
 # a thematic break.
-run_case 'a spaced star run is a thematic break' \
-  $'a\n* * *\n' 1 0 string.special -
+#
+# In 0.2 a spaced star run is list markers, not a break (U-045), and a list
+# marker under paragraph text is text (U-012).
+run_case 'a spaced star run under text is text in 0.2' \
+  $'a\n* * *\n' 1 0 - -
 run_case 'a letter marker with one space is no list marker' \
   $'A. Smith wrote\n' 0 0 - -
 run_case 'a letter marker with two spaces is a list marker' \
   $'a.  item\n' 0 0 markup.list -
 run_case 'an unclosed first-line --- is frontmatter' \
   $'---\ntitle: t\n\nx\n' 0 0 punctuation.delimiter -
-checks=14
+# Carve 0.2 shapes against the v2/ grammar: `=` headings (C2-B-151), a tilde
+# run that opens no fence (U-116), and a bare `_v_` that is text (U-065).
+run_case 'an = heading is a level-1 heading' \
+  $'= Title\n' 0 0 markup.heading.1 -
+run_case 'a tilde run is no code fence' \
+  $'~~~\nx\n~~~\n' 0 0 - -
+run_case 'a braced underline opens with a delimiter' \
+  $'a {_u_} _v_\n' 0 2 punctuation.delimiter 4
+run_case 'a bare underline is text' \
+  $'a {_u_} _v_\n' 0 8 - -
+checks=18
 
 if ((${#fails[@]})); then
   printf 'tree-sitter capture failures:\n'

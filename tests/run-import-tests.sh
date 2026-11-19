@@ -12,6 +12,8 @@ fi
 WORK="$(mktemp -d)"
 trap 'rm -rf "${WORK}"' EXIT
 
+# Carve 0.2 renamed `migrate --from` to `import --from` (C2-T-007, C2-T-033);
+# the stub echoes the arguments it was called with.
 cat > "${WORK}/ok" <<'STUB'
 #!/bin/sh
 echo "$1 $2 $3"
@@ -19,7 +21,7 @@ echo '*bold*'
 STUB
 cat > "${WORK}/bad" <<'STUB'
 #!/bin/sh
-echo 'carve migrate: cannot read' >&2
+echo 'carve import: cannot read' >&2
 exit 2
 STUB
 # carve-js 0.1.7 run through a .bin symlink exits 0 and prints nothing.
@@ -57,7 +59,7 @@ assert(import.format_for('Makefile') == nil)
 vim.g.carve_command = '${WORK}/ok'
 local target = import.import('${WORK}/doc.md')
 assert(target == '${WORK}/doc.crv', 'target: ' .. tostring(target))
-assert(read(target) == 'migrate --from markdown\n*bold*\n', 'content: ' .. read(target))
+assert(read(target) == 'import --from markdown\n*bold*\n', 'content: ' .. read(target))
 assert(vim.api.nvim_buf_get_name(0) == target, 'the result was not opened')
 
 vim.fn.confirm = function() return 2 end
@@ -66,13 +68,13 @@ assert(declined == nil and read('${WORK}/page.crv') == 'old\n', 'declined overwr
 
 vim.fn.confirm = function() return 1 end
 assert(import.import('${WORK}/page.html') == '${WORK}/page.crv')
-assert(read('${WORK}/page.crv') == 'migrate --from html\n*bold*\n')
+assert(read('${WORK}/page.crv') == 'import --from html\n*bold*\n')
 
 vim.g.carve_command = { '${WORK}/bad' }
 local failed, reason = import.import('${WORK}/doc.md', { force = true, open = false })
 assert(failed == nil and reason:match('exit 2') and reason:match('cannot read'), tostring(reason))
 assert(#notes > 0, 'the CLI error was not reported')
-assert(read('${WORK}/doc.crv') == 'migrate --from markdown\n*bold*\n', 'a failed run clobbered the target')
+assert(read('${WORK}/doc.crv') == 'import --from markdown\n*bold*\n', 'a failed run clobbered the target')
 
 vim.g.carve_command = '${WORK}/argv'
 assert(import.import('${WORK}/my notes.md', { open = false }) == '${WORK}/my notes.crv')
