@@ -33,7 +33,7 @@ local DEFAULTS = {
   -- (see README, "Bundled queries"), so an unpinned branch could compile a
   -- grammar newer or older than the queries and silently miss captures.
   -- Bump this alongside every query re-copy so the two stay paired.
-  install_revision = '06d30b97e9e64ad6b91a6d06b5c4d326bc6f8a8c',
+  install_revision = '333ae69c00b47ee0c071e9bd444ce2cec906314c',
   -- The grammar's directory inside the tree-sitter-carve repo; nil is the root.
   install_location = nil,
   -- Map the `carve` filetype to the `carve` language.
