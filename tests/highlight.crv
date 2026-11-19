@@ -16,14 +16,15 @@ A :smile: symbol and a [link](/url) and ^[a note].
 - item
 %%^ carveListBullet
 
+%% A lone `+` is text in Carve 0.2 (U-014 to U-017), on an item line too.
 - [ ] +
-%%      ^ carveContinuation
+%%      ^ (none)
 
 - +
-%%  ^ carveContinuation
+%%  ^ (none)
 
 1. +
-%%   ^ carveContinuation
+%%   ^ (none)
 
 > quoted
 %%^^^^^^^^ carveBlockquote
@@ -86,12 +87,14 @@ x = *not bold* and `not code`
 ```
 %%^ carveCodeFence
 
+%% A `~~~` run opens no fence in Carve 0.2 (U-116), and a bare `~x~` is text
+%% (U-066).
 ~~~
-%%^ carveCodeFence
+%%^ (none)
 y = ~not struck~
-%%    ^ carveCodeBlock
+%%    ^ (none)
 ~~~
-%%^ carveCodeFence
+%%^ (none)
 
 %% A RAW PASSTHROUGH BLOCK is a code fence whose info string is =FORMAT. It
 %% is its own construct and its payload is handed to that format untouched.
@@ -172,14 +175,16 @@ a
 after a longer closer
 %%^ (none)
 
-~~~~
-~~~
+%% A shorter run inside a longer fence is payload. 0.2 has no tilde fence
+%% (U-116), so the outer fence is backticks.
+`````
+````
 %%^ carveCodeBlock
 ```
 %%^ carveCodeBlock
-~~~~~
+`````
 %%^^^^^ carveCodeFence
-after the tilde fence
+after the longer fence
 %%^ (none)
 
 %% ---------------------------------------------------------------------------
@@ -196,10 +201,10 @@ const n = 1;
 ```
 %%^ carveCodeFence
 
-~~~py
+```py
 x = 1
 %%    ^ pythonNumber
-~~~
+```
 %%^ carveCodeFence
 
 ```csv
@@ -223,7 +228,7 @@ Team,10,"$49, billed yearly"
 ```
 %%^ carveCodeFence
 
-~~~csv
+```csv
 "first
 %%^ carveCsvString
 second",tail
@@ -239,7 +244,7 @@ plain"quote,tail
 "unterminated
 %%^ carveCsvString
 %%            ^ carveCsvString
-~~~
+```
 %%^ carveCodeFence
 
 ```tsv
@@ -274,26 +279,25 @@ key: 1
 ```
 %%^ carveCodeFence
 
-%% A thematic break is a whole line of dashes, stars or underscores; the
-%% typography rule claims the first two dashes and the emphasis regions the
-%% stars and underscores.
+%% A thematic break is a line of three or more stars. In Carve 0.2 `---` is
+%% an em dash and `___` text (U-044).
 ---
-%%^ carveRule
+%%^ carveTypography
 ***
 %%^ carveRule
 ___
-%%^ carveRule
+%%^ (none)
 
-%% A `-` or `*` run may space its markers with single spaces (carve#4814).
+%% A spaced `-` or `*` run is nested list markers in 0.2 (U-045).
 - - -
-%%^^^^^ carveRule
+%%^ carveListBullet
 * * *
-%%^^^^^ carveRule
+%%^ carveListBullet
 
-%% A spaced break interrupts a paragraph.
+%% Under paragraph text a spaced run is text (U-012, U-045).
 para
 - - -
-%%^^^^^ carveRule
+%%^^^^^ (none)
 
 %% ---------------------------------------------------------------------------
 %% EVERY VERBATIM PAYLOAD IS INERT.
@@ -574,157 +578,159 @@ Apos: {{ part.crv #sec }} don't it's fine
 %% ^^^ carveBold
 %%                                                    ^^^ carveBold
 
+%% Bare `_`, `~` and `=` runs are text in Carve 0.2 (U-065 to U-067), so the
+%% rows below that open with one assert that nothing colors them.
 _see [x](http://a.b/c_) now_
-%% ^^^ carveUnderline
-%%                        ^^^ carveUnderline
+%% ^^^ (none)
+%%                        ^^^ (none)
 
 _see [x](http://a_b/c) now_
-%% ^^^ carveUnderline
-%%                       ^^^ carveUnderline
+%% ^^^ (none)
+%%                       ^^^ (none)
 
 _see <http://a.b/c_> now_
-%% ^^^ carveUnderline
-%%                     ^^^ carveUnderline
+%% ^^^ (none)
+%%                     ^^^ (none)
 
 _see <http://a_b> now_
-%% ^^^ carveUnderline
-%%                  ^^^ carveUnderline
+%% ^^^ (none)
+%%                  ^^^ (none)
 
 _see ![x](a.png "t_u") now_
-%% ^^^ carveUnderline
-%%                       ^^^ carveUnderline
+%% ^^^ (none)
+%%                       ^^^ (none)
 
 _see ![x](a.png 't_u') now_
-%% ^^^ carveUnderline
-%%                       ^^^ carveUnderline
+%% ^^^ (none)
+%%                       ^^^ (none)
 
 _see ![x](a.png "t_") now_
-%% ^^^ carveUnderline
-%%                      ^^^ carveUnderline
+%% ^^^ (none)
+%%                      ^^^ (none)
 
 _see ![x](a.png 't_') now_
-%% ^^^ carveUnderline
-%%                      ^^^ carveUnderline
+%% ^^^ (none)
+%%                      ^^^ (none)
 
 _see [x](foo(bar)_baz) now_
-%% ^^^ carveUnderline
-%%                       ^^^ carveUnderline
+%% ^^^ (none)
+%%                       ^^^ (none)
 
 _see [x](foo\)x_y) now_
-%% ^^^ carveUnderline
-%%                   ^^^ carveUnderline
+%% ^^^ (none)
+%%                   ^^^ (none)
 
 _see [x](foo(bar(\x))_y) now_
-%% ^^^ carveUnderline
-%%                         ^^^ carveUnderline
+%% ^^^ (none)
+%%                         ^^^ (none)
 
 _see <aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:x_y> now_
-%% ^^^ carveUnderline
-%%                                                    ^^^ carveUnderline
+%% ^^^ (none)
+%%                                                    ^^^ (none)
 
 ~see [x](http://a.b/c~) now~
-%% ^^^ carveStrike
-%%                        ^^^ carveStrike
+%% ^^^ (none)
+%%                        ^^^ (none)
 
 ~see [x](http://a~b/c) now~
-%% ^^^ carveStrike
-%%                       ^^^ carveStrike
+%% ^^^ (none)
+%%                       ^^^ (none)
 
 ~see <http://a.b/c~> now~
-%% ^^^ carveStrike
-%%                     ^^^ carveStrike
+%% ^^^ (none)
+%%                     ^^^ (none)
 
 ~see <http://a~b> now~
-%% ^^^ carveStrike
-%%                  ^^^ carveStrike
+%% ^^^ (none)
+%%                  ^^^ (none)
 
 ~see ![x](a.png "t~u") now~
-%% ^^^ carveStrike
-%%                       ^^^ carveStrike
+%% ^^^ (none)
+%%                       ^^^ (none)
 
 ~see ![x](a.png 't~u') now~
-%% ^^^ carveStrike
-%%                       ^^^ carveStrike
+%% ^^^ (none)
+%%                       ^^^ (none)
 
 ~see ![x](a.png "t~") now~
-%% ^^^ carveStrike
-%%                      ^^^ carveStrike
+%% ^^^ (none)
+%%                      ^^^ (none)
 
 ~see ![x](a.png 't~') now~
-%% ^^^ carveStrike
-%%                      ^^^ carveStrike
+%% ^^^ (none)
+%%                      ^^^ (none)
 
 ~see [x](foo(bar)~baz) now~
-%% ^^^ carveStrike
-%%                       ^^^ carveStrike
+%% ^^^ (none)
+%%                       ^^^ (none)
 
 ~see [x](foo\)x~y) now~
-%% ^^^ carveStrike
-%%                   ^^^ carveStrike
+%% ^^^ (none)
+%%                   ^^^ (none)
 
 ~see [x](foo(bar(\x))~y) now~
-%% ^^^ carveStrike
-%%                         ^^^ carveStrike
+%% ^^^ (none)
+%%                         ^^^ (none)
 
 ~see <aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:x~y> now~
-%% ^^^ carveStrike
-%%                                                    ^^^ carveStrike
+%% ^^^ (none)
+%%                                                    ^^^ (none)
 
 =see [x](http://a.b/c=) now=
-%% ^^^ carveHighlight
-%%                        ^^^ carveHighlight
+%% ^^^ (none)
+%%                        ^^^ (none)
 
 =see [x](http://a=b/c) now=
-%% ^^^ carveHighlight
-%%                       ^^^ carveHighlight
+%% ^^^ (none)
+%%                       ^^^ (none)
 
 =see <http://a.b/c=> now=
-%% ^^^ carveHighlight
-%%                     ^^^ carveHighlight
+%% ^^^ (none)
+%%                     ^^^ (none)
 
 =see <http://a=b> now=
-%% ^^^ carveHighlight
-%%                  ^^^ carveHighlight
+%% ^^^ (none)
+%%                  ^^^ (none)
 
 =see ![x](a.png "t=u") now=
-%% ^^^ carveHighlight
-%%                       ^^^ carveHighlight
+%% ^^^ (none)
+%%                       ^^^ (none)
 
 =see ![x](a.png 't=u') now=
-%% ^^^ carveHighlight
-%%                       ^^^ carveHighlight
+%% ^^^ (none)
+%%                       ^^^ (none)
 
 =see ![x](a.png "t=") now=
-%% ^^^ carveHighlight
-%%                      ^^^ carveHighlight
+%% ^^^ (none)
+%%                      ^^^ (none)
 
 =see ![x](a.png 't=') now=
-%% ^^^ carveHighlight
-%%                      ^^^ carveHighlight
+%% ^^^ (none)
+%%                      ^^^ (none)
 
 =see [x](foo(bar)=baz) now=
-%% ^^^ carveHighlight
-%%                       ^^^ carveHighlight
+%% ^^^ (none)
+%%                       ^^^ (none)
 
 =see [x](foo\)x=y) now=
-%% ^^^ carveHighlight
-%%                   ^^^ carveHighlight
+%% ^^^ (none)
+%%                   ^^^ (none)
 
 =see [x](foo(bar(\x))=y) now=
-%% ^^^ carveHighlight
-%%                         ^^^ carveHighlight
+%% ^^^ (none)
+%%                         ^^^ (none)
 
 =see <aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:x=y> now=
-%% ^^^ carveHighlight
-%%                                                    ^^^ carveHighlight
+%% ^^^ (none)
+%%                                                    ^^^ (none)
 
 /*see [x](a*/b) now*/
 %%  ^^^ carveBoldItalic
 %%                ^^^ carveBoldItalic
 
 _see <a_b@cd.de> now_
-%% ^^^ carveUnderline
-%%                 ^^^ carveUnderline
+%% ^^^ (none)
+%%                 ^^^ (none)
 
 /a [b [c] d/](u) e/
 %%                ^^ carveItalic
@@ -1021,8 +1027,9 @@ para
 
 | t |
 
+%% After a blank line a caret line is text (C2-B-149, U-063).
 ^ cap
-%%^^^^^ carveCaption
+%%^^^^^ (none)
 
 ```
 x
@@ -1124,12 +1131,14 @@ x->y a<-b <-> a<---b (tm)
 > after *b*
 %%         ^ carveBold
 
-%% A header cell's `|=` marker is the header, and its `=` never opens a
-%% highlight across the row.
+%% A header cell's `|=` marker is the header. A glued `<` or `>` after it is
+%% cell text in Carve 0.2 (U-056).
 |=< A |=> B |
-%%^^^ carveTableHeader
+%%^^ carveTableHeader
+%%  ^ carveTable
 %%    ^ carveTable
-%%      ^^^ carveTableHeader
+%%      ^^ carveTableHeader
+%%        ^ carveTable
 %%          ^ carveTable
 
 %% A letter or roman marker with a dot needs two spaces (carve#4828).
@@ -1152,3 +1161,43 @@ x @5 #123 @a1 #v2
 %%  ^^^ carveTableCellAttr
 %%              ^^^^^^ carveTableCellAttr
 %%                     ^^^^ carveTable
+
+%% ---------------------------------------------------------------------------
+%% CARVE 0.2. `=` marks a heading beside `#` (C2-B-151, C2-B-152). Only a code
+%% fence, a `:::` fence, a `%%%` comment fence, a table row and a `***` break
+%% end a paragraph; any other block opener under text is text (U-001 to
+%% U-010), and a `%%` comment line keeps the paragraph open.
+%% ---------------------------------------------------------------------------
+
+= Title
+%%^^^^^^^ carveHeading1
+
+=== Third
+%%^^^^^^^^^ carveHeading3
+
+text
+# not a heading
+%%^^^^^^^^^^^^^^^ (none)
+= not a heading
+%%^^^^^^^^^^^^^^^ (none)
+> not a quote
+%%^ (none)
+:: not a term
+%%^^ (none)
+[x]: /not-a-definition
+%%    ^ (none)
+
+text
+%% a comment line
+# still text
+%%^ (none)
+
+text
+***
+%%^^^ carveRule
+# a heading again
+%%^^^^^^^^^^^^^^^^^ carveHeading1
+
+| row |
+# after a table row
+%%^^^^^^^^^^^^^^^^^^^ carveHeading1
