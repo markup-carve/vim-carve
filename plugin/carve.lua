@@ -17,19 +17,6 @@ pcall(function()
   end
 end)
 
--- The Carve 0.2 parser exports `tree_sitter_carve2`; load an installed
--- `parser/carve.so` with that symbol so the `carve` language finds it. A 0.1
--- parser fails here and falls back to Neovim's default loading.
-pcall(function()
-  if vim.treesitter and vim.treesitter.language and vim.treesitter.language.add then
-    for _, path in ipairs(vim.api.nvim_get_runtime_file('parser/carve.so', true)) do
-      if pcall(vim.treesitter.language.add, 'carve', { path = path, symbol_name = 'carve2' }) then
-        break
-      end
-    end
-  end
-end)
-
 -- Neovim 0.9 segfaults when a Carve document injects Carve into itself (a
 -- ```carve fence); 0.10.0 is the first release that parses it. The bundled
 -- injections.scm guards every document-named language with this predicate.

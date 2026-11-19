@@ -50,9 +50,9 @@ cp -R "$upstream/src" "$parser/src"
 for meta in grammar.js package.json tree-sitter.json; do
   [[ -f "$upstream/$meta" ]] && cp "$upstream/$meta" "$parser/$meta"
 done
-# The v2/ grammar ships no package.json; the CLI reads --scope from one.
+# The CLI reads --scope from a package.json; supply one if the checkout has none.
 [[ -f "$parser/package.json" ]] || cat > "$parser/package.json" <<'JSON'
-{"name": "tree-sitter-carve2", "version": "0.0.0",
+{"name": "tree-sitter-carve", "version": "0.0.0",
  "tree-sitter": [{"scope": "text.carve", "file-types": ["crv"]}]}
 JSON
 touch "$parser/src/"*.c
@@ -169,7 +169,7 @@ run_case 'a letter marker with two spaces is a list marker' \
   $'a.  item\n' 0 0 markup.list -
 run_case 'an unclosed first-line --- is frontmatter' \
   $'---\ntitle: t\n\nx\n' 0 0 punctuation.delimiter -
-# Carve 0.2 shapes against the v2/ grammar: `=` headings (C2-B-151), a tilde
+# Carve 0.2 shapes against the 0.2 grammar: `=` headings (C2-B-151), a tilde
 # run that opens no fence (U-116), and a bare `_v_` that is text (U-065).
 run_case 'an = heading is a level-1 heading' \
   $'= Title\n' 0 0 markup.heading.1 -

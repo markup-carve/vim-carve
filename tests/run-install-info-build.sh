@@ -49,6 +49,6 @@ echo "install_info.files: ${list[*]}"
 python3 - "$work/parser.so" <<'PY'
 import ctypes, os, sys
 lib = ctypes.CDLL(sys.argv[1], mode=os.RTLD_NOW)
-lib.tree_sitter_carve2
+lib.tree_sitter_carve
 print('parser built from install_info.files loads with all symbols resolved.')
 PY
