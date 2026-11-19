@@ -235,10 +235,8 @@ require('carve.import').import('notes.md', { format = 'markdown', force = true }
 
 The tree-sitter grammar lives in
 [tree-sitter-carve](https://github.com/markup-carve/tree-sitter-carve) and must
-be compiled per platform. The Carve 0.2 grammar is its `v2/` directory on the
-`next2` branch; it exports the symbol `tree_sitter_carve2`, and this plugin
-loads it under the `carve` language with that symbol. There are two supported
-routes.
+be compiled per platform. The Carve 0.2 grammar is the repository root on the
+`next2` branch. There are two supported routes.
 
 ### Route 1: nvim-treesitter (recommended)
 
@@ -251,21 +249,20 @@ require('carve').setup()
 -- :TSInstall carve
 ```
 
-After install, restart Neovim: `plugin/carve.lua` and `setup()` load the
-compiled `parser/carve.so` with its `carve2` symbol at startup, and Neovim
-then applies the bundled queries to the `carve` filetype. A parser compiled
-from the 0.1 grammar does not load this way; run `:TSInstall carve` again.
+After install, restart Neovim: it loads the compiled `parser/carve.so` and
+applies the bundled queries to the `carve` filetype. A parser compiled from the
+0.1 grammar reads Carve 0.1; run `:TSInstall carve` again.
 
 This route uses the parser-config API of nvim-treesitter's `master` branch
 (`require('nvim-treesitter.parsers').get_parser_configs()`). The config
-compiles `src/parser.c` and `src/scanner.c` from the `v2` location and pins the
+compiles `src/parser.c` and `src/scanner.c` from the repository root and pins the
 grammar with `revision`. The rewritten `main` branch of nvim-treesitter has no
 `get_parser_configs()`, so there `setup()` registers nothing; use Route 2.
 
 ### Route 2: a pre-compiled parser
 
 If you already built the parser (for example with `tree-sitter build` in
-tree-sitter-carve's `v2/`), point `setup()` at it. No nvim-treesitter required:
+tree-sitter-carve), point `setup()` at it. No nvim-treesitter required:
 
 ```lua
 require('carve').setup({
@@ -275,13 +272,13 @@ require('carve').setup({
 -- :lua require('carve').start()
 ```
 
-This calls `vim.treesitter.language.add('carve', { path = ..., symbol_name = 'carve2' })`
+This calls `vim.treesitter.language.add('carve', { path = ... })`
 and maps the `carve` filetype to the `carve` language.
 
 ### Bundled queries
 
 `queries/carve/*.scm` are copied verbatim from tree-sitter-carve's
-`v2/queries/` and are the source of truth: `highlights.scm`, `folds.scm`, `indents.scm`,
+`queries/` and are the source of truth: `highlights.scm`, `folds.scm`, `indents.scm`,
 `injections.scm`, `locals.scm`, `textobjects.scm`, `context.scm`.
 
 Two deliberate deltas in `injections.scm`, both backed by `plugin/carve.lua`:
@@ -380,7 +377,7 @@ let g:carve_fenced_languages = ['bash=sh', 'diff', 'javascript',
 | `parser_path`       | `nil`                                       | Register a pre-compiled parser directly.              |
 | `install_url`       | tree-sitter-carve repo                      | URL for `:TSInstall carve`.                           |
 | `install_revision`  | the commit in `lua/carve/init.lua`          | Revision to install, pinned to the bundled queries.   |
-| `install_location`  | `'v2'`                                      | The grammar's directory in the tree-sitter-carve repo. |
+| `install_location`  | `nil` (the repository root)                 | The grammar's directory in the tree-sitter-carve repo. |
 | `register_filetype` | `true`                                      | Map `carve` filetype to `carve` lang.                 |
 
 ## License
