@@ -16,6 +16,7 @@ Body text.
 %%^ (none)
 
 ---
-%%^ carveRule
+%%^ carveTypography
 
-%% Below the frontmatter the same three dashes are an ordinary thematic break.
+%% Below the frontmatter the same three dashes are an em dash in Carve 0.2
+%% (U-044), not a thematic break.

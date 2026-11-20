@@ -52,7 +52,8 @@ pcall(function()
       return
     end
     local alias = vim.treesitter.get_node_text(node, source):lower()
-    local ft = vim.filetype.match({ filename = 'a.' .. alias }) or aliases[alias] or alias
+    -- The table comes first: Neovim 0.11 matches `a.sh` to `sh`, not `bash`.
+    local ft = aliases[alias] or vim.filetype.match({ filename = 'a.' .. alias }) or alias
     local lang = vim.treesitter.language.get_lang(ft) or ft
     -- Same guard as carve-injectable?, on the RESOLVED name: `crv` resolves to
     -- carve too, and Neovim 0.9 segfaults on that self-injection.
@@ -82,5 +83,5 @@ end, {
   nargs = '?',
   bang = true,
   complete = 'file',
-  desc = 'Convert Markdown/HTML/Djot/BBCode to a sibling .crv with carve migrate',
+  desc = 'Convert Markdown/HTML/Djot/BBCode to a sibling .crv with carve import',
 })

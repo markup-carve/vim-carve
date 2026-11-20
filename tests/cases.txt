@@ -45,3 +45,15 @@ carveDelim	`{% stays code %}`
 -	>>+
 -	>> +
 carveTableContinuation	+ more | z |
+
+# Carve 0.2: `=` headings (C2-B-151); `~~~`, `___` and spaced runs open
+# nothing (U-044, U-045, U-116); a bare `_x_` is text (U-065); a `+` bullet is
+# text.
+carveHeading1	= H
+carveHeading2	== H
+-	======= x
+-	~~~
+-	___
+-	_u_ text
+-	+ item
+carveRule	***

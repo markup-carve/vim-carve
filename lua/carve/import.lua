@@ -1,5 +1,5 @@
 -- :CarveImport - convert Markdown, HTML, Djot or BBCode to a sibling .crv
--- file with `carve migrate`, then open it.
+-- file with `carve import`, then open it.
 
 local M = {}
 
@@ -98,15 +98,15 @@ function M.import(file, opts)
     end
   end
 
-  vim.list_extend(cmd, { 'migrate', '--from', format, file })
+  vim.list_extend(cmd, { 'import', '--from', format, file })
   local code, stdout, stderr = run(cmd)
   if code ~= 0 then
     local msg = vim.trim(stderr ~= '' and stderr or stdout)
-    return fail(string.format('carve migrate failed (exit %d): %s', code, msg))
+    return fail(string.format('carve import failed (exit %d): %s', code, msg))
   end
   -- carve-js 0.1.7 run through a .bin or global symlink exits 0 without output.
   if not stdout:find('%S') and table.concat(vim.fn.readfile(file), '\n'):find('%S') then
-    return fail('carve migrate printed no output for ' .. vim.fn.fnamemodify(file, ':t')
+    return fail('carve import printed no output for ' .. vim.fn.fnamemodify(file, ':t')
       .. ' (carve-js 0.1.7 does that when run through a symlink); set g:carve_command')
   end
 

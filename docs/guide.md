@@ -15,19 +15,22 @@ One repository, two highlighting layers:
 The regex layer is the always-on baseline. The tree-sitter layer is a strict
 upgrade for Neovim users who install the parser.
 
+This branch follows Carve 0.2; see [Carve 0.2](#carve-02) for what changed
+from 0.1.
+
 ## What you get
 
 - Filetype detection for `*.crv`.
-- Syntax highlighting for headings, inline emphasis (`/italic/`, `*bold*`,
-  `/*bold italic*/`, `_underline_`, `~strike~`, `=highlight=`, `{^sup^}`,
-  `{,sub,}`, `` `code` ``) and their braced forms (`{*bold*}`, `{/italic/}`,
-  `{_under_}`, `{~strike~}`, `{=mark=}`), links, autolinks, images in all three
+- Syntax highlighting for `=` and `#` headings, inline emphasis (`/italic/`,
+  `*bold*`, `/*bold italic*/`, `{^sup^}`, `{,sub,}`, `` `code` ``) and the
+  braced forms (`{*bold*}`, `{/italic/}`, `{_under_}`, `{~strike~}`,
+  `{=mark=}`; underline, strike and highlight have only these), links, autolinks, images in all three
   forms (`![alt](src)`, `![alt][ref]`, `![alt][]`), cross-refs, references,
   footnotes, lists and task items, blockquotes and captions, fenced code (with
   language, `"Header"`, `[Label]`), raw passthrough blocks (` ```=html `), divs
   and admonitions, line blocks (`::: |`) and local hard-break blocks
   (`::: \`), block/inline attributes, tables (with braced cell alignment
-  `|={>} a |`; the 0.1.13 `|=>` is still highlighted), math (inline `$\`..\``, display
+  `|={>} a |`), thematic breaks (`***`), math (inline `$\`..\``, display
   `$$\`..\``, ` ```math `), frontmatter, comments (`%%`, `%%% ... %%%`,
   `{% ... %}`), mentions, tags, smart typography, CriticMarkup, and the
   reserved include directive (`{{ path #section @opt:value }}`).
@@ -48,14 +51,17 @@ upgrade for Neovim users who install the parser.
   `a/b/c` and `2*3*4` stay literal. A run, and a single-backtick code span,
   may cross one line break.
 - Block context follows the engine where a line-based highlighter can see it:
-  a list marker or `^ ` line after a paragraph stays prose, a caption is
-  colored only below a block that takes one (table, code block, quote,
-  image or display math line, figure group), and headings, list markers,
-  definitions, tables, container fences and fenced code are recognized inside
-  `> ` quotes. Frontmatter without a closing `---` runs to the end of the
-  file. Not covered: a caption
-  below a `::: >` fenced quote, a list after an indented paragraph line, and
-  a caption separated from its block by more than one blank line.
+  only a code fence, a `:::` fence, a `%%%` comment fence, a table row and a
+  `***` break end a paragraph, so a heading, quote, list marker, attribute
+  line, definition, term or `^ ` line after paragraph text stays prose. A
+  caption is colored only directly below a block that takes one (table, code
+  block, quote, image or display math line, figure group), and headings, list
+  markers, definitions, tables, container fences and fenced code are
+  recognized inside `> ` quotes. Frontmatter without a closing `---` runs to
+  the end of the file. Not covered: a caption below a `::: >` fenced quote, a
+  list after an indented paragraph line, a heading or quote directly under the
+  text of a list item (it is colored), and an inline attribute block at the
+  start of a lazy line (it is colored too).
 - `commentstring=%% %s` and a minimal list/quote indent.
 - Optional concealing (`let g:carve_conceal = 1`) and section folding
   (`let g:carve_folding = 1`).
@@ -180,6 +186,9 @@ Pick one with `:lua vim.lsp.buf.code_action()` (mapped to `gra` from Neovim
 while the `.crv` buffer stays current, so switch to the new buffer before `:w`
 or write both with `:wall`.
 
+With the carve-lsp `next2` server for Carve 0.2, **Export as Markdown** fails
+with "writer not available yet" until carve-js registers a Markdown writer.
+
 **Export as PDF** is run by the server, which writes the file itself. It uses
 `crv2pdf` from [carve-pdf](https://github.com/markup-carve/carve-pdf) when that
 is on `PATH` (clone it and run `make install`); that gives the better page
@@ -202,7 +211,7 @@ the tool's error output.
 
 ## Importing Markdown, HTML, Djot or BBCode (Neovim)
 
-`:CarveImport [file]` converts a file to Carve with `carve migrate` and writes
+`:CarveImport [file]` converts a file to Carve with `carve import --from` and writes
 the result next to it with a `.crv` extension (`notes.md` becomes `notes.crv`),
 then opens it.
 
@@ -214,7 +223,7 @@ then opens it.
 - When the CLI fails or prints nothing, the error is shown as a message and
   no `.crv` file is written. A source buffer with unsaved changes is refused.
 
-It needs the Carve CLI (`npm i -g @markup-carve/carve`). Set `g:carve_command`
+It needs a Carve 0.2 CLI (see [Carve 0.2](#carve-02)). Set `g:carve_command`
 if it is not on `PATH` as `carve`; a list is accepted too, for a command that
 takes arguments of its own. From Lua:
 
@@ -226,7 +235,8 @@ require('carve.import').import('notes.md', { format = 'markdown', force = true }
 
 The tree-sitter grammar lives in
 [tree-sitter-carve](https://github.com/markup-carve/tree-sitter-carve) and must
-be compiled per platform. There are two supported routes.
+be compiled per platform. The Carve 0.2 grammar is the repository root on the
+`next2` branch. There are two supported routes.
 
 ### Route 1: nvim-treesitter (recommended)
 
@@ -239,19 +249,20 @@ require('carve').setup()
 -- :TSInstall carve
 ```
 
-After install, Neovim picks the parser for the `carve` filetype and applies the
-bundled queries automatically.
+After install, restart Neovim: it loads the compiled `parser/carve.so` and
+applies the bundled queries to the `carve` filetype. A parser compiled from the
+0.1 grammar reads Carve 0.1; run `:TSInstall carve` again.
 
 This route uses the parser-config API of nvim-treesitter's `master` branch
 (`require('nvim-treesitter.parsers').get_parser_configs()`). The config
-compiles `src/parser.c` and `src/scanner.c` and pins the grammar with
-`revision`. The rewritten `main` branch of nvim-treesitter has no
+compiles `src/parser.c` and `src/scanner.c` from the repository root and pins the
+grammar with `revision`. The rewritten `main` branch of nvim-treesitter has no
 `get_parser_configs()`, so there `setup()` registers nothing; use Route 2.
 
 ### Route 2: a pre-compiled parser
 
-If you already built the parser (for example with `tree-sitter build`, which
-produces `carve.so`), point `setup()` at it. No nvim-treesitter required:
+If you already built the parser (for example with `tree-sitter build` in
+tree-sitter-carve), point `setup()` at it. No nvim-treesitter required:
 
 ```lua
 require('carve').setup({
@@ -261,13 +272,13 @@ require('carve').setup({
 -- :lua require('carve').start()
 ```
 
-This calls `vim.treesitter.language.add('carve', { path = ... })` and maps the
-`carve` filetype to the `carve` language.
+This calls `vim.treesitter.language.add('carve', { path = ... })`
+and maps the `carve` filetype to the `carve` language.
 
 ### Bundled queries
 
-`queries/carve/*.scm` are copied verbatim from tree-sitter-carve and are the
-source of truth: `highlights.scm`, `folds.scm`, `indents.scm`,
+`queries/carve/*.scm` are copied verbatim from tree-sitter-carve's
+`queries/` and are the source of truth: `highlights.scm`, `folds.scm`, `indents.scm`,
 `injections.scm`, `locals.scm`, `textobjects.scm`, `context.scm`.
 
 Two deliberate deltas in `injections.scm`, both backed by `plugin/carve.lua`:
@@ -302,6 +313,41 @@ compiles every bundled query against the pinned parser.
 compiles the grammar from exactly the `install_info.files` list that
 `:TSInstall carve` uses and loads the result, so a missing source file fails CI.
 
+## Carve 0.2
+
+This branch reads Carve 0.2. The spec's `spec/0.2/UPGRADING.md` lists every
+source change; these are the ones the highlighting shows:
+
+- `=` headings sit beside `#` headings.
+- Only a code fence, a `:::` container, a `%%%` comment fence, a table row and
+  a `***` break end a paragraph. A heading, quote, attribute line, definition
+  or term directly under text is part of the text, and a `%%` comment line
+  does not end the paragraph.
+- `---`, `___` and spaced runs such as `* * *` are no thematic breaks, and a
+  `~~~` run opens no fence.
+- A bare `_x_`, `~x~` or `=x=` is text; write `{_x_}`, `{~x~}` or `{=x=}`.
+  `{~old~>new~}` is a strike of `old~>new`, not a substitution.
+- A lone `+` line, a `+` bullet and a grid table border are text. The `+`
+  table continuation row stays.
+- A GFM separator row is an ordinary table row, and a glued `|=>` or `|=~` is
+  cell text; alignment goes in braces (`|={>}`).
+- A caption sits directly below its block, with no blank line between.
+- `:CarveImport` runs `carve import --from FORMAT FILE`; 0.1's
+  `carve migrate` is gone.
+
+`:CarveImport` needs a Carve 0.2 `carve` CLI. Until 0.2 is released, build it
+from the carve-js `next2` branch:
+
+```sh
+git clone --branch next2 https://github.com/markup-carve/carve-js
+cd carve-js && npm ci && npm run build
+ln -s "$PWD/dist/cli.js" ~/.local/bin/carve
+```
+
+The language server for 0.2 is the carve-lsp `next2` branch. Its *Export as
+Markdown* action fails with "writer not available yet" until carve-js
+registers a Markdown writer.
+
 ## Configuration
 
 | Global                | Default | Effect                                  |
@@ -331,6 +377,7 @@ let g:carve_fenced_languages = ['bash=sh', 'diff', 'javascript',
 | `parser_path`       | `nil`                                       | Register a pre-compiled parser directly.              |
 | `install_url`       | tree-sitter-carve repo                      | URL for `:TSInstall carve`.                           |
 | `install_revision`  | the commit in `lua/carve/init.lua`          | Revision to install, pinned to the bundled queries.   |
+| `install_location`  | `nil` (the repository root)                 | The grammar's directory in the tree-sitter-carve repo. |
 | `register_filetype` | `true`                                      | Map `carve` filetype to `carve` lang.                 |
 
 ## License

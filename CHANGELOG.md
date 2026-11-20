@@ -8,6 +8,20 @@ Releases before 0.1.6 are described on the
 
 ## [Unreleased]
 
+Classic Vim highlighting, the Neovim parser and `:CarveImport` follow Carve 0.2 on the `next2` branch.
+
+### Breaking
+
+- The Neovim parser is tree-sitter-carve's Carve 0.2 grammar (`v2/` at `f634264`), loaded under the `carve` language with its `carve2` symbol; run `:TSInstall carve` again and restart. The bundled queries are its `v2/queries/`.
+- `:CarveImport` runs `carve import --from FORMAT FILE`, the Carve 0.2 command; the 0.1 `carve migrate` is gone, so import needs a 0.2 CLI.
+- Bare `_x_`, `~x~` and `=x=`, the `{~old~>new~}` substitution, the lone `+` continuation line, `---` and `___` breaks, spaced breaks, `~~~` fences, the GFM separator row and the glued `|=>` alignment are no longer highlighted: Carve 0.2 reads them as text or as an ordinary row.
+
+### Improvements
+
+- `=` headings are highlighted beside `#` headings.
+- A heading, quote, attribute line, definition or term directly under paragraph text is shown as text, and a `%%` comment line no longer ends a paragraph, as Carve 0.2 reads them.
+- A caption is highlighted only directly below its block.
+
 ## [0.1.9] - 2026-11-12
 
 Classic Vim and the Neovim parser follow the Carve 0.1.14 readings.

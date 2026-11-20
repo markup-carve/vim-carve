@@ -29,7 +29,8 @@ if [[ -z "$upstream" ]]; then
   fi
   git clone --quiet https://github.com/markup-carve/tree-sitter-carve "$work/ts"
   git -C "$work/ts" checkout --quiet "$rev"
-  upstream="$work/ts"
+  location="$(sed -n "s/.*install_location = '\([^']*\)'.*/\1/p" "$root/lua/carve/init.lua" | head -n1)"
+  upstream="$work/ts${location:+/$location}"
 fi
 
 mkdir -p "$work/rt/parser"

@@ -14,8 +14,8 @@
 --      nvim-treesitter is present.
 --
 --   2. Pre-compiled parser: if you already have a `carve.so` (e.g. from
---      `tree-sitter build`), pass its path and this module registers it via
---      `vim.treesitter.language.add('carve', { path = ... })`.
+--      `tree-sitter build` in tree-sitter-carve), pass its path and this
+--      module registers it via `vim.treesitter.language.add`.
 --
 -- Either way, the filetype `carve` is mapped to the `carve` language so the
 -- bundled queries apply.
@@ -33,10 +33,17 @@ local DEFAULTS = {
   -- (see README, "Bundled queries"), so an unpinned branch could compile a
   -- grammar newer or older than the queries and silently miss captures.
   -- Bump this alongside every query re-copy so the two stay paired.
-  install_revision = '008db1a4248b10224f3dcfee8e3e8448cb8da37a',
+  install_revision = '333ae69c00b47ee0c071e9bd444ce2cec906314c',
+  -- The grammar's directory inside the tree-sitter-carve repo; nil is the root.
+  install_location = nil,
   -- Map the `carve` filetype to the `carve` language.
   register_filetype = true,
 }
+
+-- Load a compiled parser under the `carve` language. Returns true on success.
+function M.load_parser(path)
+  return pcall(vim.treesitter.language.add, 'carve', { path = path })
+end
 
 -- Register a pre-compiled parser shared object, if a path was given and the
 -- modern API is available. Returns true on success.
@@ -47,8 +54,17 @@ local function register_parser_path(path)
   if vim.uv and vim.uv.fs_stat(path) == nil and vim.loop and vim.loop.fs_stat(path) == nil then
     return false
   end
-  local ok = pcall(vim.treesitter.language.add, 'carve', { path = path })
-  return ok
+  return M.load_parser(path)
+end
+
+-- Load a `parser/carve.so` that :TSInstall carve compiled earlier.
+local function load_installed_parser()
+  for _, path in ipairs(vim.api.nvim_get_runtime_file('parser/carve.so', true)) do
+    if M.load_parser(path) then
+      return true
+    end
+  end
+  return false
 end
 
 -- Wire the grammar into nvim-treesitter's parser table so `:TSInstall carve`
@@ -66,6 +82,7 @@ local function register_with_nvim_treesitter(opts)
   configs.carve = {
     install_info = {
       url = opts.install_url,
+      location = opts.install_location,
       -- The grammar has an external scanner. tests/run-install-info-build.sh
       -- builds from exactly this list.
       files = { 'src/parser.c', 'src/scanner.c' },
@@ -92,6 +109,7 @@ function M.setup(opts)
   -- Otherwise integrate with nvim-treesitter for install + runtime.
   if not registered then
     register_with_nvim_treesitter(opts)
+    load_installed_parser()
   end
 
   return M

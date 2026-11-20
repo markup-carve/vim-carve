@@ -74,10 +74,9 @@ for case in '!carveTaskMark|- [ ]' '!carveTaskMark|- [ ]   ' \
   fi
 done
 
-# A lone `+` is the marker only where it attaches the next block: at an open
-# container's marker column with a block at that column next, or right after a
-# block opener (PART 9 SS17). Every other `+` stays text. The first `+` that
-# ends a line is checked; each row was read against carve-js main.
+# A lone `+` is text in Carve 0.2 (U-014 to U-017). The rows were the 0.1
+# attach (`M`) and refuse (`T`) cases; every one of them is `T` now. The first
+# `+` that ends a line is checked.
 while IFS='|' read -r expected src; do
   [[ -z "$expected" || "$expected" == \#* ]] && continue
   printf '%b\n' "$src" > "$work/case.crv"
@@ -99,54 +98,54 @@ while IFS='|' read -r expected src; do
     fails+=("$src: expected $expected at the +, got $actual ($stack)")
   fi
 done <<'CASES'
-M|- a\n+\nb
-M|- a\n  - b\n  +\n  c
-M|- a\n  - b\n+\npara
-M|  - a\n  +\n  b
-M|1. a\n+\nb
-M|- a\n\n+\nb
-M|- a\nlazy\n+\nb
-M|- a\n+\n> q
-M|- a\n+\n```\nx\n```
-M|> quoted\n+\n> attached
-M|:: t\n: a\n+\n- b
-M|[^a]: x\n+\n- b
-M|> - a\n> +\n> para
-M|> > - a\n> > +\n> > b
-M|> > - a\n> >\n> > +\n> > b
-M|> - a\n>\n> +\n> b
-M|> - a\n>\n>\n> +\n> b
-M|> +\nflush
-M|> > +\nflush
-M|> outer\n> > +\nflush
-M|- a\n  > +\npara
-M|- +\nflush
-M|- [ ] +\nflush
-M|- > +\nflush
-M|- - +\nflush
-M|:: t\n: +\nflush
-M|[^a]: +\nflush
-M|> - a\n>   - b\n> +\n> para
-M|- a\n  > q\n  +\n  para
-M|- x\n  - y\n    - a\n\t+\n\t> q
-M|- > +\n> q
-M|- > a\n  +\n  b
-M|- x\n  - > a\n    +\n    b
-M|- a\n  - > +\n  b
-M|- a\n  - > +\n  # h
-M|- - ```\n\n  +\n  x
-M|- - a\n  +\n  x
-M|:: t\n:  d\n   :: term\n   :  detail\n   +\n   para
-M|- a\n  > +\n  q
-M|1. a\n   - b\n     > +\n     | c |
-M|- > > q\n  > +\n  > > r
-M|:: t\n: > > q\n  > +\n  > > r
-M|- a\n  - - > +\n  b
-M|- > > +\n> q
-M|> - > +\n# h
-M|> - a\n> - > +\n# h
-M|- - > +\n    b
-M|- > > +\n    b
+T|- a\n+\nb
+T|- a\n  - b\n  +\n  c
+T|- a\n  - b\n+\npara
+T|  - a\n  +\n  b
+T|1. a\n+\nb
+T|- a\n\n+\nb
+T|- a\nlazy\n+\nb
+T|- a\n+\n> q
+T|- a\n+\n```\nx\n```
+T|> quoted\n+\n> attached
+T|:: t\n: a\n+\n- b
+T|[^a]: x\n+\n- b
+T|> - a\n> +\n> para
+T|> > - a\n> > +\n> > b
+T|> > - a\n> >\n> > +\n> > b
+T|> - a\n>\n> +\n> b
+T|> - a\n>\n>\n> +\n> b
+T|> +\nflush
+T|> > +\nflush
+T|> outer\n> > +\nflush
+T|- a\n  > +\npara
+T|- +\nflush
+T|- [ ] +\nflush
+T|- > +\nflush
+T|- - +\nflush
+T|:: t\n: +\nflush
+T|[^a]: +\nflush
+T|> - a\n>   - b\n> +\n> para
+T|- a\n  > q\n  +\n  para
+T|- x\n  - y\n    - a\n\t+\n\t> q
+T|- > +\n> q
+T|- > a\n  +\n  b
+T|- x\n  - > a\n    +\n    b
+T|- a\n  - > +\n  b
+T|- a\n  - > +\n  # h
+T|- - ```\n\n  +\n  x
+T|- - a\n  +\n  x
+T|:: t\n:  d\n   :: term\n   :  detail\n   +\n   para
+T|- a\n  > +\n  q
+T|1. a\n   - b\n     > +\n     | c |
+T|- > > q\n  > +\n  > > r
+T|:: t\n: > > q\n  > +\n  > > r
+T|- a\n  - - > +\n  b
+T|- > > +\n> q
+T|> - > +\n# h
+T|> - a\n> - > +\n# h
+T|- - > +\n    b
+T|- > > +\n    b
 T|- - > +\n  b
 T|- > +\n b
 T|- a\n  - > +\n b
@@ -203,9 +202,9 @@ T|>>+\nflush
 T|> >+\nflush
 T|>> +\nflush
 T|> - a\n>+\n> para
-M|:: t\n: +\n- a
+T|:: t\n: +\n- a
 T|: a\n+\n- b
-M|                    - a\n                    +\n                    b
+T|                    - a\n                    +\n                    b
 T|[^a]: +\n- x
 T|  > +\nq
 T|> > +\n  > q
