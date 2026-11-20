@@ -74,7 +74,7 @@ jobs:
           node-version: '22'
       - name: Build the carve CLI from carve-js next2
         env:
-          CARVE_JS_REV: d4d723d3d697b74cf7972b97a94a059845f58e7b
+          CARVE_JS_REV: b8f88ab1efdc93dbe72dccc870e901ec0341faa6
         run: |
           git init --quiet "$RUNNER_TEMP/carve-js"
           cd "$RUNNER_TEMP/carve-js"
