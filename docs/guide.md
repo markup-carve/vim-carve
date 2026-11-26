@@ -236,7 +236,7 @@ require('carve.import').import('notes.md', { format = 'markdown', force = true }
 The tree-sitter grammar lives in
 [tree-sitter-carve](https://github.com/markup-carve/tree-sitter-carve) and must
 be compiled per platform. The Carve 0.2 grammar is the repository root on the
-`next2` branch. There are two supported routes.
+`main` branch. There are two supported routes.
 
 ### Route 1: nvim-treesitter (recommended)
 
