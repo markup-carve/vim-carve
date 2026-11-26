@@ -186,7 +186,7 @@ Pick one with `:lua vim.lsp.buf.code_action()` (mapped to `gra` from Neovim
 while the `.crv` buffer stays current, so switch to the new buffer before `:w`
 or write both with `:wall`.
 
-With the carve-lsp `next2` server for Carve 0.2, **Export as Markdown** fails
+With the carve-lsp `main` server for Carve 0.2, **Export as Markdown** fails
 with "writer not available yet" until carve-js registers a Markdown writer.
 
 **Export as PDF** is run by the server, which writes the file itself. It uses
@@ -336,15 +336,15 @@ source change; these are the ones the highlighting shows:
   `carve migrate` is gone.
 
 `:CarveImport` needs a Carve 0.2 `carve` CLI. Until 0.2 is released, build it
-from the carve-js `next2` branch:
+from the carve-js `main` branch:
 
 ```sh
-git clone --branch next2 https://github.com/markup-carve/carve-js
+git clone https://github.com/markup-carve/carve-js
 cd carve-js && npm ci && npm run build
 ln -s "$PWD/dist/cli.js" ~/.local/bin/carve
 ```
 
-The language server for 0.2 is the carve-lsp `next2` branch. Its *Export as
+The language server for 0.2 is the carve-lsp `main` branch. Its *Export as
 Markdown* action fails with "writer not available yet" until carve-js
 registers a Markdown writer.
 
