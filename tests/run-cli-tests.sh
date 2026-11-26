@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # :CarveImport against a real Carve 0.2 `carve` CLI. Skips when none is on PATH,
-# unless CARVE_REQUIRE_CLI is set: CI builds carve-js `next2` at a pinned commit
+# unless CARVE_REQUIRE_CLI is set: CI builds carve-js `main` at a pinned commit
 # and sets it, so a missing CLI there fails instead of passing silently.
 set -euo pipefail
 

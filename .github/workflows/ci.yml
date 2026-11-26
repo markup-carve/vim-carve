@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, next2]
+    branches: [main]
   pull_request:
 
 jobs:
@@ -67,12 +67,12 @@ jobs:
         run: ./tests/run-import-tests.sh
 
       # The import test above runs a stub. This one runs a real Carve 0.2 CLI:
-      # 0.2 is not released, so it is built from carve-js `next2` at a pinned
+      # 0.2 is not released, so it is built from carve-js `main` at a pinned
       # commit, and CARVE_REQUIRE_CLI turns the test's skip into a failure.
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
-      - name: Build the carve CLI from carve-js next2
+      - name: Build the carve CLI from carve-js main
         env:
           CARVE_JS_REV: fb2718493f3bcb70b4a26d05ae2ee084ec978552
         run: |
