@@ -1,6 +1,6 @@
 # carve.vim
 
-Vim and Neovim highlighting for Carve `.crv` files. The optional Neovim parser uses the Tree-sitter Carve revision pinned in the setup guide. See the [Carve documentation](https://markup-carve.github.io/carve/) for the markup language.
+Vim and Neovim highlighting for Carve `.crv` files. The optional Neovim parser uses the Tree-sitter Carve revision pinned in the setup guide. The `next2` branch follows Carve 0.2 ([what changed](docs/guide.md#carve-02)). See the [Carve documentation](https://markup-carve.github.io/carve/) for the markup language.
 
 ## Features
 
