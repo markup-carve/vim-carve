@@ -8,19 +8,25 @@ Releases before 0.1.6 are described on the
 
 ## [Unreleased]
 
-Classic Vim highlighting, the Neovim parser and `:CarveImport` follow Carve 0.2 on the `next2` branch.
+## [0.2.0] - 2026-11-27
+
+Classic Vim highlighting, the Neovim parser and `:CarveImport` follow Carve 0.2.
 
 ### Breaking
 
-- The Neovim parser is tree-sitter-carve's Carve 0.2 grammar (`v2/` at `f634264`), loaded under the `carve` language with its `carve2` symbol; run `:TSInstall carve` again and restart. The bundled queries are its `v2/queries/`.
-- `:CarveImport` runs `carve import --from FORMAT FILE`, the Carve 0.2 command; the 0.1 `carve migrate` is gone, so import needs a 0.2 CLI.
-- Bare `_x_`, `~x~` and `=x=`, the `{~old~>new~}` substitution, the lone `+` continuation line, `---` and `___` breaks, spaced breaks, `~~~` fences, the GFM separator row and the glued `|=>` alignment are no longer highlighted: Carve 0.2 reads them as text or as an ordinary row.
+- The Neovim parser is tree-sitter-carve's Carve 0.2 grammar, loaded from the repository root under the `carve` language; run `:TSInstall carve` again and restart. The bundled queries are copied from that grammar (#96, #98, #100, #101).
+- `:CarveImport` runs `carve import --from FORMAT FILE`, the Carve 0.2 command; the 0.1 `carve migrate` is gone, so import needs a 0.2 CLI (#96).
+- Bare `_x_`, `~x~` and `=x=`, the `{~old~>new~}` substitution, the lone `+` continuation line, `---` and `___` breaks, spaced breaks, `~~~` fences, the GFM separator row and the glued `|=>` alignment are no longer highlighted: Carve 0.2 reads them as text or as an ordinary row (#96).
 
 ### Improvements
 
-- `=` headings are highlighted beside `#` headings.
-- A heading, quote, attribute line, definition or term directly under paragraph text is shown as text, and a `%%` comment line no longer ends a paragraph, as Carve 0.2 reads them.
-- A caption is highlighted only directly below its block.
+- `=` headings are highlighted beside `#` headings (#96).
+- A heading, quote, attribute line, definition or term directly under paragraph text is shown as text, and a `%%` comment line no longer ends a paragraph, as Carve 0.2 reads them (#96).
+- A caption is highlighted only directly below its block (#96).
+- A `{$name}: value` snippet definition and a `{{ $name }}` snippet use are highlighted. A snippet use alone on its line ends the block above it (#110, #111).
+- The Neovim highlights query paints table continuation rows, native header cells and span cells (#95).
+
+**Full Changelog**: https://github.com/markup-carve/vim-carve/compare/0.1.9...0.2.0
 
 ## [0.1.9] - 2026-11-12
 
