@@ -32,8 +32,9 @@ from 0.1.
   (`::: \`), block/inline attributes, tables (with braced cell alignment
   `|={>} a |`), thematic breaks (`***`), math (inline `$\`..\``, display
   `$$\`..\``, ` ```math `), frontmatter, comments (`%%`, `%%% ... %%%`,
-  `{% ... %}`), mentions, tags, smart typography, CriticMarkup, and the
-  reserved include directive (`{{ path #section @opt:value }}`).
+  `{% ... %}`), mentions, tags, smart typography, CriticMarkup, snippet
+  definitions and uses (`{$name}: value`, `{{ $name }}`), and the reserved
+  include directive (`{{ path #section @opt:value }}`).
 - Fenced code in a listed language is highlighted as that language (see
   `g:carve_fenced_languages` below). A fence closes only on its own character,
   at least as long as its opener, so a four-backtick fence can hold a

@@ -1201,3 +1201,49 @@ text
 | row |
 # after a table row
 %%^^^^^^^^^^^^^^^^^^^ carveHeading1
+
+%% Snippet definitions and uses (C2-B-236, C2-I-128, C2-B-237).
+
+{$ver}: 0.2.3
+%%^ carveSnippetDef
+%% ^^^^ carveSnippetName
+%%     ^^ carveSnippetDef
+%%        ^^^^^ (none)
+Text after the definition with *strong*.
+%%                                ^^^^^^ carveBold
+
+{$brand .badge}{key=v}: Carve *bold*
+%% ^^^^^^ carveSnippetName
+%%        ^^^^^^ carveAttrClass
+%%                ^^^^ carveAttrKey
+%%                               ^^^^ carveBold
+{$v #x}: an id refuses the definition
+%%^^^^ (none)
+{$v}:x
+%%^^^^^^ (none)
+para line
+{$lazy}: a lazy line is text
+%%^^^^^^^^ (none)
+
+Release {{ $ver }} with *strong* after.
+%%        ^^^ carveSnippetUse
+%%           ^^^^ carveSnippetName
+%%               ^^^ carveSnippetUse
+%%                         ^^^^^^ carveBold
+Include {{ $a.crv }} and {{ $v @shift:1 }} stay directives.
+%%           ^^^^^^ carveIncludePath
+%%                            ^^ carveIncludePath
+%%                               ^^^^^^ carveIncludeOptionName
+No pad {{$v}} is text.
+%%       ^^^^^^ (none)
+
+{{ $ver }}
+%%^^^ carveSnippetUse
+%%   ^^^^ carveSnippetName
+
+Text after the block use with *strong*.
+%%                               ^^^^^^ carveBold
+
+- item {{ $ver }}
+{$item}: inside a list item it is text
+%%^^^^^^^ (none)
