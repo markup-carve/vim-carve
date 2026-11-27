@@ -230,12 +230,16 @@ syntax match carveFencedQuote    /^\s*:\{3,} \+>\s*$/
 " The group caption needs no rule: it is an ordinary `^ ` line below the closing
 " fence, and the region ends AT that fence, so carveCaption claims it at the top
 " level exactly as it claims every other caption.
+"
+" `TOP`, not `ALLBUT`: `ALLBUT` admits every contained group, so prose in a
+" group took the code-language group and the fenced languages, tables and
+" quotes inside it lost their own rules.
 syntax region carveFigureGroup
       \ matchgroup=carveFigureGroupFence
       \ start=/^\s*\z(:\{3,}\) \+figure\s*$/
       \ end=/^\s*\z1\s*$/
       \ keepend
-      \ contains=ALLBUT,carveFigureGroup,carveCsvField,carveTsvField,carveParagraph,carveSnippetDef,carveSnippetName,@carveListItems,@carveIncludeParts
+      \ contains=TOP,carveFigureGroup,carveParagraph,carveSnippetDef,@carveListItems
       \ nextgroup=carveCaption skipnl
 
 " ---------------------------------------------------------------------------
@@ -463,11 +467,9 @@ syntax region carveInclude matchgroup=carveIncludeDelim
       \ end=/[ \t]\@<=}}/
       \ oneline keepend
       \ contains=carveIncludePath,carveIncludeSection,carveIncludeOption
-" The parts are reachable ONLY through the region above. Spelled as a cluster
-" so carveFigureGroup's `contains=ALLBUT` can exclude them in one name: that
-" list admits every contained group, and a path pattern with no sigil of its
-" own then claimed `:::: figure` as a path.
-syntax cluster carveIncludeParts contains=carveIncludePath,carveIncludeSection,carveIncludeOption,carveIncludeOptionName,carveIncludeOptionValue
+" The parts are reachable ONLY through the region above, so they are all
+" `contained`: a path pattern with no sigil of its own would otherwise claim
+" `:::: figure` as a path.
 
 " A snippet use `{{ $name }}` (C2-I-128, C2-B-237): space pads only, no option.
 " Defined after carveInclude so it wins the tie at the same `{{`.
@@ -671,9 +673,7 @@ syntax sync minlines=50
 "
 " It has to stay on the OPENER LINE: reachable from the payload it would colour
 " a quoted string in the code as a fence title. Its pattern is anchored behind
-" a delimiter run, so it stays put even where something reaches it anyway -
-" carveFigureGroup contains ALLBUT, which would otherwise let an unanchored
-" `.\+$` colour every line of a figure group.
+" a delimiter run, so it stays put even where something reaches it anyway.
 syntax match carveCodeInfo /\%(^\s*`\{3,}\)\@<=[^`].*$/ contained
       \ contains=carveCodeLang,carveRawFormat,carveCodeTitle,carveCodeLabel
 syntax match carveCodeLang   /[[:alnum:]_+\/-]\+/ contained

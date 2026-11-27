@@ -1253,3 +1253,15 @@ This costs $price and {{ $ver }}.
 %%           ^ carveFigureGroup
 %%                         ^^^^ carveSnippetName
 ::::
+
+%% Inside a figure group a word is prose, and a fenced block, a table and a
+%% quote keep their own groups.
+:::: figure
+This costs .cls words
+%%^^^^ carveFigureGroup
+%%           ^^^^ carveFigureGroup
+| a | b |
+%%  ^ carveTable
+> quote
+%%^^^^^^^ carveBlockquote
+::::
