@@ -517,15 +517,17 @@ syntax cluster carveInline contains=@carveInlineNoLink,carveCommentInline,carveL
 " followed by an unindented line. It does not hold a paragraph region, so a
 " marker inside it opens the next (or a nested) item.
 " ---------------------------------------------------------------------------
-" A snippet definition `{$name}: value` (C2-B-236) is a one-line block at
-" column 0, and a marker with an id defines nothing. As a lazy line of an open
+" A snippet definition `{$name}: value` (C2-B-236) at column 0, like a use
+" alone on its line (C2-B-237), is a one-line block; a marker with an id
+" defines nothing. As a lazy line of an open
 " paragraph it is text: the paragraph region does not hold this group.
 let s:snip_parts = '\%([^{}#"'']\|"\%(\\.\|[^"\\]\)*"\|''\%(\\.\|[^''\\]\)*''\)*'
 let s:snippet_def = '{\$[A-Za-z0-9_][A-Za-z0-9_-]*\%( \+' . s:snip_parts . '\)\=}\%({' . s:snip_parts . '}\)*:\ze .*[^ \t]'
 execute 'syntax match carveSnippetDef /^' . s:snippet_def . '/'
       \ . ' contains=carveSnippetName,carveAttrClass,carveAttrKey,carveAttrLang'
 let s:para_skip = '\%(' . s:interrupt('') . '\|' . s:opener('') . '\|' . s:marker_line
-      \ . '\|\^ \+\S\|: \+\S\|+.*|\s*$\|!\[\|\$\$`\|' . s:snippet_def . '\)'
+      \ . '\|\^ \+\S\|: \+\S\|+.*|\s*$\|!\[\|\$\$`\|' . s:snippet_def
+      \ . '\|{{ \+\$[A-Za-z0-9_][A-Za-z0-9_-]* \+}}\s*$\)'
 execute 'syntax region carveParagraph start=/^\%(' . s:para_skip . '\)\@!\ze\S/'
       \ . ' end=/^\ze\%(\s*$\|' . s:interrupt('[ \t]*') . '\)/'
       \ . ' keepend transparent contains=@carveInline,carveComment,carveMathDisplay,@Spell'

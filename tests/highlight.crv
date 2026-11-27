@@ -1265,3 +1265,14 @@ This costs .cls words
 > quote
 %%^^^^^^^ carveBlockquote
 ::::
+
+%% A use alone on its line is a one-line block, so a heading below it opens;
+%% as a lazy line of text it is inline and the heading stays text.
+{{ $v }}
+= Heading
+%%^^^^^^^^^ carveHeading1
+
+text
+{{ $v }}
+= Not a heading
+%%^ (none)
