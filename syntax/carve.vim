@@ -230,12 +230,16 @@ syntax match carveFencedQuote    /^\s*:\{3,} \+>\s*$/
 " The group caption needs no rule: it is an ordinary `^ ` line below the closing
 " fence, and the region ends AT that fence, so carveCaption claims it at the top
 " level exactly as it claims every other caption.
+"
+" `TOP`, not `ALLBUT`: `ALLBUT` admits every contained group, so prose in a
+" group took the code-language group and the fenced languages, tables and
+" quotes inside it lost their own rules.
 syntax region carveFigureGroup
       \ matchgroup=carveFigureGroupFence
       \ start=/^\s*\z(:\{3,}\) \+figure\s*$/
       \ end=/^\s*\z1\s*$/
       \ keepend
-      \ contains=ALLBUT,carveFigureGroup,carveCsvField,carveTsvField,carveParagraph,@carveListItems,@carveIncludeParts
+      \ contains=TOP,carveFigureGroup,carveParagraph,carveSnippetDef,@carveListItems
       \ nextgroup=carveCaption skipnl
 
 " ---------------------------------------------------------------------------
@@ -463,11 +467,14 @@ syntax region carveInclude matchgroup=carveIncludeDelim
       \ end=/[ \t]\@<=}}/
       \ oneline keepend
       \ contains=carveIncludePath,carveIncludeSection,carveIncludeOption
-" The parts are reachable ONLY through the region above. Spelled as a cluster
-" so carveFigureGroup's `contains=ALLBUT` can exclude them in one name: that
-" list admits every contained group, and a path pattern with no sigil of its
-" own then claimed `:::: figure` as a path.
-syntax cluster carveIncludeParts contains=carveIncludePath,carveIncludeSection,carveIncludeOption,carveIncludeOptionName,carveIncludeOptionValue
+" The parts are reachable ONLY through the region above, so they are all
+" `contained`: a path pattern with no sigil of its own would otherwise claim
+" `:::: figure` as a path.
+
+" A snippet use `{{ $name }}` (C2-I-128, C2-B-237): space pads only, no option.
+" Defined after carveInclude so it wins the tie at the same `{{`.
+syntax match carveSnippetUse /{{ \+\$[A-Za-z0-9_][A-Za-z0-9_-]* \+}}/ contains=carveSnippetName
+syntax match carveSnippetName /\$[A-Za-z0-9_][A-Za-z0-9_-]*/ contained
 
 " Symbol shortcodes :name: (word boundary; first name char is a letter, digit,
 " + or -, so :+1:/:-1: match but :_x: stays literal).
@@ -494,7 +501,7 @@ syntax region carveCommentInline matchgroup=carveCommentDelim
       \ start=/{%/ end=/%}/ oneline keepend contains=carveTodo,@Spell
 
 " Inline cluster (note: no link inside link to avoid recursion).
-syntax cluster carveInlineNoLink contains=carveInclude,carveItalic,carveBold,carveBoldItalic,carveSuper,carveSub,carveCode,carveLiteralInline,carveEscape,carveHardBreak,carveMention,carveTag,carveSymbol,carveTypography,carveForcedItalic,carveForcedBold,carveForcedUnderline,carveForcedStrike,carveForcedHighlight,carveAutolink,carveCrossRef,carveFootRef,carveMathInline,carveCitation,carveCallout
+syntax cluster carveInlineNoLink contains=carveInclude,carveSnippetUse,carveItalic,carveBold,carveBoldItalic,carveSuper,carveSub,carveCode,carveLiteralInline,carveEscape,carveHardBreak,carveMention,carveTag,carveSymbol,carveTypography,carveForcedItalic,carveForcedBold,carveForcedUnderline,carveForcedStrike,carveForcedHighlight,carveAutolink,carveCrossRef,carveFootRef,carveMathInline,carveCitation,carveCallout
 syntax cluster carveInline contains=@carveInlineNoLink,carveCommentInline,carveLink,carveImage,carveReferenceImage,carveCollapsedImage,carveSpan,carveFootInline,carveRawInline,carveExtInline,carveInlineAttr,carveCriticIns,carveCriticDel,carveCriticSub,carveCriticCom
 
 " ---------------------------------------------------------------------------
@@ -510,8 +517,15 @@ syntax cluster carveInline contains=@carveInlineNoLink,carveCommentInline,carveL
 " followed by an unindented line. It does not hold a paragraph region, so a
 " marker inside it opens the next (or a nested) item.
 " ---------------------------------------------------------------------------
+" A snippet definition `{$name}: value` (C2-B-236) is a one-line block at
+" column 0, and a marker with an id defines nothing. As a lazy line of an open
+" paragraph it is text: the paragraph region does not hold this group.
+let s:snip_parts = '\%([^{}#"'']\|"\%(\\.\|[^"\\]\)*"\|''\%(\\.\|[^''\\]\)*''\)*'
+let s:snippet_def = '{\$[A-Za-z0-9_][A-Za-z0-9_-]*\%( \+' . s:snip_parts . '\)\=}\%({' . s:snip_parts . '}\)*:\ze .*[^ \t]'
+execute 'syntax match carveSnippetDef /^' . s:snippet_def . '/'
+      \ . ' contains=carveSnippetName,carveAttrClass,carveAttrKey,carveAttrLang'
 let s:para_skip = '\%(' . s:interrupt('') . '\|' . s:opener('') . '\|' . s:marker_line
-      \ . '\|\^ \+\S\|: \+\S\|+.*|\s*$\|!\[\|\$\$`\)'
+      \ . '\|\^ \+\S\|: \+\S\|+.*|\s*$\|!\[\|\$\$`\|' . s:snippet_def . '\)'
 execute 'syntax region carveParagraph start=/^\%(' . s:para_skip . '\)\@!\ze\S/'
       \ . ' end=/^\ze\%(\s*$\|' . s:interrupt('[ \t]*') . '\)/'
       \ . ' keepend transparent contains=@carveInline,carveComment,carveMathDisplay,@Spell'
@@ -524,7 +538,7 @@ for s:n in s:item_cols
         \ . (s:n ? '\|^\ze \{0,' . (s:n - 1) . '}\S' : '')
   execute 'syntax region carveListItem' . s:n . ' start=/^\ze' . s:in . s:marker . ' \+\S/'
         \ . ' end=/' . s:end . '/'
-        \ . ' transparent contains=TOP,carveParagraph,' . join(map(range(0, s:n), '"carveListItem" . v:val'), ',')
+        \ . ' transparent contains=TOP,carveParagraph,carveSnippetDef,' . join(map(range(0, s:n), '"carveListItem" . v:val'), ',')
 endfor
 
 " Indented blocks that only open inside a list item: at the top level an
@@ -659,9 +673,7 @@ syntax sync minlines=50
 "
 " It has to stay on the OPENER LINE: reachable from the payload it would colour
 " a quoted string in the code as a fence title. Its pattern is anchored behind
-" a delimiter run, so it stays put even where something reaches it anyway -
-" carveFigureGroup contains ALLBUT, which would otherwise let an unanchored
-" `.\+$` colour every line of a figure group.
+" a delimiter run, so it stays put even where something reaches it anyway.
 syntax match carveCodeInfo /\%(^\s*`\{3,}\)\@<=[^`].*$/ contained
       \ contains=carveCodeLang,carveRawFormat,carveCodeTitle,carveCodeLabel
 syntax match carveCodeLang   /[[:alnum:]_+\/-]\+/ contained
@@ -822,6 +834,9 @@ highlight default link carveFootDef        Identifier
 highlight default link carveMention        Identifier
 highlight default link carveTag            Tag
 
+highlight default link carveSnippetDef         Special
+highlight default link carveSnippetUse         Special
+highlight default link carveSnippetName        Identifier
 highlight default link carveIncludeDelim       Special
 highlight default link carveIncludePath        String
 highlight default link carveIncludeSection     Label
