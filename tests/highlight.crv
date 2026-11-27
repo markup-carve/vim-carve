@@ -1247,3 +1247,9 @@ Text after the block use with *strong*.
 - item {{ $ver }}
 {$item}: inside a list item it is text
 %%^^^^^^^ (none)
+
+:::: figure
+This costs $price and {{ $ver }}.
+%%           ^ carveFigureGroup
+%%                         ^^^^ carveSnippetName
+::::

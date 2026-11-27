@@ -235,7 +235,7 @@ syntax region carveFigureGroup
       \ start=/^\s*\z(:\{3,}\) \+figure\s*$/
       \ end=/^\s*\z1\s*$/
       \ keepend
-      \ contains=ALLBUT,carveFigureGroup,carveCsvField,carveTsvField,carveParagraph,carveSnippetDef,@carveListItems,@carveIncludeParts
+      \ contains=ALLBUT,carveFigureGroup,carveCsvField,carveTsvField,carveParagraph,carveSnippetDef,carveSnippetName,@carveListItems,@carveIncludeParts
       \ nextgroup=carveCaption skipnl
 
 " ---------------------------------------------------------------------------
